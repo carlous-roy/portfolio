@@ -1,9 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { RCLogoCompact } from './IntroAnimation'
 
-// Gemini API — dual key rotation with rate limiting
+// Gemini API. One key is enough; a second is optional and only adds failover.
+// Set VITE_GEMINI_KEY_1 (and optionally VITE_GEMINI_KEY_2) in Vercel's env vars.
+// NOTE: VITE_ variables are inlined into the client bundle at build time, so any
+// key here is public. Restrict it to the Generative Language API and give it a
+// spend cap. The real fix is a server-side route handler.
 const GEMINI_KEYS = [import.meta.env.VITE_GEMINI_KEY_1, import.meta.env.VITE_GEMINI_KEY_2].filter(Boolean)
-const GEMINI_URL = (key) => `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`
+// gemini-2.0-flash was shut down 2026-06-01. Swap MODEL to change engines.
+const GEMINI_MODEL = 'gemini-3.5-flash'
+// Send the key as x-goog-api-key rather than ?key= in the URL. Google moved AI
+// Studio from AIza keys to the newer AQ. keys, and reports of AQ. keys failing
+// against the ?key= query parameter are common enough that the header is the
+// safer path. It also keeps the key out of URLs, which end up in logs.
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`
+const CONTACT_EMAIL = 'roy4edu@gmail.com'
 let requestTimestamps = [], currentKeyIndex = 0, responseCache = new Map()
 
 function isRateLimited() {
@@ -13,41 +24,48 @@ function isRateLimited() {
 }
 
 // Chatbot persona — this is the knowledge base, keep it dense
-const SYSTEM_PROMPT = `You are the AI assistant on Roy Carlous Christudass's portfolio website (roycarlous.com). Speak in THIRD PERSON about Roy. You are NOT Roy. Be warm, professional, and conversational. No emojis. No filler like "Great question!" Keep answers 2-5 sentences. If unsure, suggest contacting Roy directly.
+const SYSTEM_PROMPT = `You are the AI assistant on Roy Carlous Christudass's portfolio site (roycarlous.com). Speak in THIRD PERSON about Roy. You are NOT Roy. Be warm, direct and conversational. No emojis. No filler openers like "Great question!". Keep answers to 2 to 5 sentences. Prefer a specific detail over a general claim. If you do not know something, say so and point to Roy directly.
 
-Roy, from Chennai, India. MS CS at Wright State University (graduating May 2026). Coursework: Algorithm Design, Distributed Computing, Foundations of AI, Advanced Computer Networks. BE ECE from Sathyabama, Chennai.
+WHO HE IS. Roy Carlous Christudass, a software engineer working on AI and data systems. From Chennai, India, based in Dayton, Ohio, open to relocation. MS in Computer Science, Wright State University, completed August 2026. BE in Electronics and Communication Engineering, Sathyabama Institute, Chennai. Graduate coursework: Foundations of AI, Information Retrieval, Algorithm Design and Analysis, Distributed Computing, Advanced Computer Networks, Reverse Engineering and Program Analysis. Most of what he builds ends up the same shape: data coming in, a model or some logic over it, an API in the middle, and a front end someone actually uses, and he works across all of that rather than owning one layer. He is actively looking for internship or full-time roles.
 
-Work: HCLTech contractor to Teradyne, Jan 2022-Aug 2024. Progressed Intern to SE to Senior SWE. Built C++/C# instrument drivers for IGXL semiconductor test platform (Flex, UltraFlex, UltraFlex+). Resolved 150+ defects. Introduced new language nodes for analog instruments. Managed code via VersionVault. JIRA workflows.
+WORK. HCLTech, contracted to Teradyne, Jan 2022 to Aug 2024, Chennai. Graduate Engineer Trainee, then Software Engineer, then Senior Software Engineer. Promoted twice in under three years.
+- Owned C++ and C#/.NET instrument driver development for Teradyne's IG-XL automated test platform, running on UltraFLEX and UltraFLEXplus testers in semiconductor fabs, where a driver defect stops a production line.
+- Was the sole escalation point for critical stopper issues affecting Teradyne's end customers, and built the Power BI dashboards that tracked issue trends across both tester platforms. Scattered escalation records became a view of where defects clustered by platform, module and instrument, which cut mean time to resolution on the recurring classes.
+- Cut root-cause time on memory leaks and performance regressions by moving legacy diagnostic workflows onto an AI-assisted debugging framework using WinDbg, JetBrains Timeline Profiler and automated flagging of regressions between builds.
+- Worked across teams migrating the IG.NET framework from C++ to a modern C#/.NET architecture, triaging the defect backlog across ported modules and profiling runtime performance against the original build. Zero production stoppers on the releases he managed.
+- Triaged and resolved 150+ defects across three analog driver codebases (DC30, DC70, DC75), shipped new language nodes extending automated test coverage to next-generation hardware, and built and repaired the test suites behind all three. Source control through VersionVault, tracking through JIRA.
 
-Projects: TaskForge (LIVE at taskforge.roycarlous.com) - distributed report generation engine. REST API, SQS queuing, S3 storage with presigned URLs, fault tolerance (exponential backoff, DLQ, idempotency), correlation ID tracing, React dashboard, rate limiting. Java/Spring Boot/AWS/Docker/React/H2. GitHub: github.com/carlous-roy/TaskForge-Engine.
-DiffLens (LIVE at difflens.roycarlous.com) - ML code review engine. Tree-sitter AST parsing, gradient boosting risk scoring, GitHub webhook PR comments. Python/FastAPI/scikit-learn/PostgreSQL/React/Docker/Ollama. 14-file test suite. GitHub: github.com/carlous-roy/DiffLens-Engine.
-Portfolio (roycarlous.com) - React/Vite/Tailwind/Gemini chatbot.
-GestureControl (LIVE at gesture.roycarlous.com) - AI gesture-based home automation. Real-time hand gesture recognition at 30 FPS using OpenCV + MediaPipe, controls Arduino relay module via PyFirmata. Bachelor's degree project at Sathyabama (2022). Python/OpenCV/MediaPipe/PyFirmata/Arduino. GitHub: github.com/carlous-roy/GestureControl-Engine.
+PROJECTS. All four are real and reachable.
+- DiffLens, demo at difflens.roycarlous.com, code at github.com/carlous-roy/DiffLens-Engine. An ML-powered code review engine. A gradient-boosting model scores pull-request change risk from diff size, severity distribution and complexity, over a Tree-sitter AST layer measuring cyclomatic complexity and nesting depth, with TF-IDF categorization across five finding classes and embedding similarity search for recurring issues. A local LLM pass (Ollama, CodeLlama) turns findings into review comments, and GitHub webhooks make every pull request analyze itself and post inline. Four-container Docker Compose stack, 15-file pytest suite. Python, FastAPI, scikit-learn, PostgreSQL, React, Docker.
+- TaskForge, demo at taskforge.roycarlous.com, code at github.com/carlous-roy/TaskForge-Engine. A distributed job-processing system. A REST API enqueues to SQS, independent workers process and deliver to S3 behind presigned URLs, and a React dashboard polls live job state and queue depth. Engineered for failure rather than the happy path: exponential backoff with 20 percent jitter, a dead-letter queue after three attempts, idempotency keys returning 409, SIGTERM graceful drain, and correlation IDs through every hop so any failed job stays traceable. Java 17, Spring Boot, AWS SQS/DynamoDB/S3, Docker, LocalStack, React.
+- GestureControl, demo at gesture.roycarlous.com, code at github.com/carlous-roy/GestureControl-Engine. A 30 FPS vision-to-actuator control loop. MediaPipe runs two models per frame, an SSD palm detector then direct regression of 21 3D hand landmarks, and a geometric classifier on top reads finger state by comparing each fingertip against its PIP joint, with a separate rule for the thumb because it moves laterally rather than vertically. A 15px jitter threshold and a 3-frame stabilization window suppress false triggers before anything reaches the relays. Drives a 4-channel relay module over PyFirmata serial to an Arduino UNO, and a simulation mode runs the whole loop with no board attached. Started as his BE final-year project in 2022 and was rebuilt in 2026 to modern engineering standards.
+- CodeAtlas, case study at roycarlous.com/case-studies/codeatlas.html, code at github.com/carlous-roy/CodeAtlas. Semantic search over a codebase plus an evaluation harness that measures how well it works. He indexed 152 files and about 11,000 lines across his own four projects, wrote 36 questions with the answering files labelled, and scored four retrieval strategies against three chunking strategies on the same set. Best configuration: Tree-sitter chunking on declaration boundaries, hybrid BM25 and embedding retrieval fused with Reciprocal Rank Fusion, and a per-file cap on results. Recall@5 0.86, MRR 0.591. Two results worth mentioning because they went against expectation: structural chunking initially LOST to a naive fixed-window baseline, and the reason was that the experiment moved chunk size and chunk boundaries at the same time. After merging small chunks so sizes matched, structural chunking won on ranking, recall@1 0.42 against 0.31, while recall@5 tied. And a standard MS MARCO cross-encoder reranker made results worse, lowering MRR, because it is trained on natural-language web passages and code is out of distribution for it. He also diagnosed the remaining failures instead of tuning past them: documentation filled 46 percent of the top 5 on misses against 29 percent on hits, so capping how many chunks one file can contribute lifted recall@3 from 0.67 to 0.78 in about ten lines. Python, sentence-transformers, Tree-sitter, BM25, NumPy.
+- This site: React 18, Vite, Tailwind, and this assistant on Gemini with context-aware prompt injection and client-side rate limiting.
 
-Skills: Java, Python, C#, C++, JS. Spring Boot, FastAPI, React, SQLAlchemy, scikit-learn, Tree-sitter. AWS (SQS, S3, DynamoDB), Docker. PostgreSQL, DynamoDB, H2. Git, Maven, pytest, JUnit, JIRA, VersionVault, Swagger/OpenAPI, Ollama. OpenCV, MediaPipe.
+SKILLS. Python, Java, C++, C#/.NET, JavaScript, SQL. scikit-learn, gradient boosting, predictive maintenance and remaining-useful-life modeling, anomaly detection, TF-IDF, embedding search, LLM integration (Ollama, CodeLlama, Gemini), OpenCV, MediaPipe, Tree-sitter. Spring Boot, FastAPI, REST API design, message queues, microservices, fault tolerance. React 18, Vite, Tailwind. AWS (SQS, S3, DynamoDB), Docker, LocalStack, Vercel. PostgreSQL, MySQL, DynamoDB. Power BI dashboards, ETL, embeddings and vector search, hybrid retrieval, retrieval evaluation. WinDbg, JetBrains profilers, pytest, JUnit, Git, JIRA.
 
-Interests: Photography (Sony A7V), Cricket (Sachin Tendulkar), Football (Ronaldo), UFC, F1, Cinema (Nolan, Villeneuve, Tamil cinema/Vijay), Music (AR Rahman, Weeknd, Linkin Park, Hans Zimmer).
+INTERESTS. Photography on a Sony A7 V, and the profile photos on this site are his own. Cricket (Sachin Tendulkar), football (Ronaldo), UFC, Formula 1, cinema (Nolan, Villeneuve, Tamil cinema, Vijay), music (A. R. Rahman, The Weeknd, Linkin Park, Hans Zimmer).
 
-Contact: roycarlous@gmail.com | linkedin.com/in/roycarlous | github.com/carlous-roy | +1 (326) 467-1939
+CONTACT. ${CONTACT_EMAIL} | linkedin.com/in/roy-carlous-c | github.com/carlous-roy | +1 (326) 467-1939
 
-Edge cases: Religion/politics/personal = "That's personal to Roy, happy to talk about his professional side." Salary = "Best discussed directly with Roy." Work authorization = "Best discussed with Roy directly." Unknown = be honest, suggest contacting Roy.`
+EDGE CASES. Religion, politics or anything personal: "That's personal to Roy. Happy to talk about his work." Salary or compensation: "Best discussed with Roy directly." Work authorization or visa: "That's best discussed with Roy directly." Anything you do not know: say so plainly and point to his email.`
 
 // Extra context injected based on what the user asks about
 const CTX = {
-  work: 'HCLTech contractor to Teradyne, Jan 2022-Aug 2024. Intern->SE->Senior SWE. C++/C# drivers for IGXL. 150+ defects. Flex/UltraFlex/UltraFlex+. VersionVault, JIRA.',
-  education: 'MS CS at Wright State (2024-2026). Coursework: Algorithm Design, Distributed Computing, AI, Computer Networks. BE ECE from Sathyabama, Chennai (2018-2022).',
-  projects: 'TaskForge (LIVE): distributed report generation. REST->SQS->Workers->S3. Java/Spring Boot/AWS/Docker/H2. DiffLens (LIVE): ML code review. Tree-sitter+scikit-learn+GitHub webhooks. Python/FastAPI/PostgreSQL/React/Docker. GestureControl (LIVE): OpenCV+MediaPipe hand tracking, Arduino relay control.',
-  skills: 'Java, Python, C#, C++, JS. Spring Boot, FastAPI, React, scikit-learn, Tree-sitter. AWS (SQS, S3, DynamoDB), Docker. PostgreSQL, DynamoDB, H2. Git, Maven, Ollama.',
-  hobbies: 'Photography (Sony A7V), cricket, F1, UFC, cinema, music.',
-  contact: 'roycarlous@gmail.com, linkedin.com/in/roycarlous, github.com/carlous-roy, +1 (326) 467-1939. Based in US, open to relocation.',
+  work: 'HCLTech contracted to Teradyne, Jan 2022 to Aug 2024. Trainee to SE to Senior SWE, promoted twice. C++/C#/.NET instrument drivers for IG-XL on UltraFLEX and UltraFLEXplus. Sole escalation point for critical stopper issues, built the Power BI dashboards tracking issue trends across both platforms. Moved diagnostic workflows onto an AI-assisted debugging framework (WinDbg, JetBrains Timeline Profiler). Worked on the IG.NET C++ to C# migration with zero production stoppers on releases he managed. 150+ defects across DC30/DC70/DC75.',
+  education: 'MS Computer Science, Wright State University, completed August 2026. Coursework: Foundations of AI, Information Retrieval, Algorithm Design and Analysis, Distributed Computing, Advanced Computer Networks, Reverse Engineering and Program Analysis. BE in Electronics and Communication Engineering, Sathyabama, Chennai, 2018 to 2022.',
+  projects: 'DiffLens (live): ML code review, Tree-sitter AST plus gradient boosting plus GitHub webhooks. TaskForge (live): distributed job processing, REST to SQS to workers to S3, backoff with jitter, DLQ, idempotency, correlation IDs. GestureControl (live): 30 FPS vision-to-actuator loop, MediaPipe SSD palm detector plus 21-point landmark regression driving Arduino relays. CodeAtlas (case study): semantic code search plus a retrieval evaluation harness, 36 labelled questions, recall@5 0.86 and MRR 0.591, with the negative results reported too.',
+  skills: 'Python, Java, C++, C#/.NET, JavaScript, SQL. scikit-learn, gradient boosting, OpenCV, MediaPipe, Tree-sitter, LLM integration. Spring Boot, FastAPI, React, Vite, Tailwind. AWS SQS/S3/DynamoDB, Docker, Vercel. PostgreSQL, MySQL. Power BI dashboards, ETL, embeddings and vector search, BM25 and hybrid retrieval, retrieval evaluation. WinDbg, JetBrains profilers, pytest, JUnit, Git.',
+  hobbies: 'Photography on a Sony A7 V. Cricket, Formula 1, UFC, cinema (Nolan, Villeneuve, Tamil cinema), music (A. R. Rahman, The Weeknd, Linkin Park, Hans Zimmer).',
+  contact: `${CONTACT_EMAIL}, linkedin.com/in/roy-carlous-c, github.com/carlous-roy, +1 (326) 467-1939. Based in Dayton, Ohio, open to relocation.`,
 }
 
 function getCtx(q) {
   const l = q.toLowerCase(), matched = []
-  if (/work|job|hcl|teradyne|experience|career/.test(l)) matched.push(CTX.work)
+  if (/work|job|hcl|teradyne|experience|career|escalation|dashboard|driver/.test(l)) matched.push(CTX.work)
   if (/educat|school|university|wright|degree/.test(l)) matched.push(CTX.education)
-  if (/project|taskforge|difflens|gesture|arduino|opencv|built|github/.test(l)) matched.push(CTX.projects)
-  if (/skill|tech|stack|language|java|python/.test(l)) matched.push(CTX.skills)
+  if (/project|taskforge|difflens|gesture|codeatlas|retrieval|rag|search|embedding|power ?bi|arduino|opencv|built|github/.test(l)) matched.push(CTX.projects)
+  if (/skill|tech|stack|language|java|python|sql|react|aws|docker/.test(l)) matched.push(CTX.skills)
   if (/hobb|interest|cricket|music|photo|movie|sport/.test(l)) matched.push(CTX.hobbies)
   if (/contact|email|reach|connect|linkedin|hire/.test(l)) matched.push(CTX.contact)
   return matched.length ? '\n\nContext:\n' + matched.join('\n') : ''
@@ -62,10 +80,10 @@ const SUGGESTIONS = [
 
 const FOLLOWUPS = {
   experience: ["What was Roy's role?", "What technologies did he use at work?", "How long did he work there?"],
-  projects: ["How does TaskForge work?", "How does DiffLens work?", "Where can I see his code?"],
+  projects: ["How does DiffLens work?", "What is CodeAtlas?", "Where can I see his code?"],
   skills: ["What languages does Roy know?", "What frameworks does he use?", "Does he know cloud technologies?"],
   hobbies: ["What camera does Roy use?", "What sports does he follow?", "What movies does he like?"],
-  education: ["What courses is he taking?", "When does he graduate?", "What was his undergrad?"],
+  education: ["What did he study?", "When did he graduate?", "What was his undergrad?"],
   contact: ["What's his LinkedIn?", "What's his GitHub?", "Where is he based?"],
   default: ["Tell me about his experience", "What are his hobbies?", "How to contact Roy?"],
 }
@@ -73,7 +91,7 @@ const FOLLOWUPS = {
 function getFollowups(msg) {
   const l = msg.toLowerCase()
   if (/hcl|teradyne|work|experience|role|senior/.test(l)) return FOLLOWUPS.experience
-  if (/taskforge|difflens|project|built|github/.test(l)) return FOLLOWUPS.projects
+  if (/taskforge|difflens|gesture|codeatlas|project|built|github/.test(l)) return FOLLOWUPS.projects
   if (/java|python|c\+\+|react|skill|stack/.test(l)) return FOLLOWUPS.skills
   if (/hobby|interest|cricket|photo|music|movie|sport/.test(l)) return FOLLOWUPS.hobbies
   if (/wright|degree|master|sathyabama|educat/.test(l)) return FOLLOWUPS.education
@@ -105,21 +123,36 @@ export default function AIChatbot({ dark, messages, setMessages, onClose }) {
 
     const fail = (text) => { setMessages(p => [...p, { role: 'assistant', content: text }]); setLoading(false) }
 
-    if (isRateLimited()) return fail("You've been chatting a lot! Reach Roy directly at roycarlous@gmail.com")
+    if (isRateLimited()) return fail(`You've been chatting a lot! Reach Roy directly at ${CONTACT_EMAIL}`)
     const ck = msg.toLowerCase().trim()
     if (responseCache.has(ck)) return fail(responseCache.get(ck))
-    if (!GEMINI_KEYS.length) return fail("API not configured. Reach Roy at roycarlous@gmail.com!")
+    if (!GEMINI_KEYS.length) return fail(`API not configured. Reach Roy at ${CONTACT_EMAIL}!`)
 
     const callAPI = async (ki) => {
-      const r = await fetch(GEMINI_URL(GEMINI_KEYS[ki % GEMINI_KEYS.length]), {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const r = await fetch(GEMINI_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': GEMINI_KEYS[ki % GEMINI_KEYS.length],
+        },
         body: JSON.stringify({
           system_instruction: { parts: [{ text: SYSTEM_PROMPT + getCtx(msg) }] },
           contents: [...messages.filter(m => m.role !== 'system').map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })), { role: 'user', parts: [{ text: msg }] }],
-          generationConfig: { temperature: 0.7, topP: 0.9, maxOutputTokens: 300 }
+          generationConfig: {
+            temperature: 0.7,
+            topP: 0.9,
+            // Thinking tokens are drawn from maxOutputTokens. At 300 the model
+            // spent the whole budget reasoning and the answer came back truncated.
+            maxOutputTokens: 800,
+            thinkingConfig: { thinkingLevel: 'low' }
+          }
         })
       })
-      if (!r.ok) throw new Error(r.status)
+      if (!r.ok) {
+        let body = ''
+        try { body = (await r.text()).slice(0, 400) } catch {}
+        throw new Error(`HTTP ${r.status} \u2014 ${body}`)
+      }
       return r.json()
     }
 
@@ -130,14 +163,18 @@ export default function AIChatbot({ dark, messages, setMessages, onClose }) {
       const reply = d?.candidates?.[0]?.content?.parts?.[0]?.text || "Couldn't process that."
       responseCache.set(ck, reply)
       setMessages(p => [...p, { role: 'assistant', content: reply }])
-    } catch {
+    } catch (e1) {
+      console.error('[chatbot] primary key failed:', e1.message)
       try {
         currentKeyIndex = (currentKeyIndex + 1) % GEMINI_KEYS.length
         const d = await callAPI(currentKeyIndex)
         const reply = d?.candidates?.[0]?.content?.parts?.[0]?.text || "Having trouble."
         responseCache.set(ck, reply)
         setMessages(p => [...p, { role: 'assistant', content: reply }])
-      } catch { fail("Connection issue. Reach Roy at roycarlous@gmail.com!") }
+      } catch (e2) {
+        console.error('[chatbot] fallback key failed:', e2.message)
+        fail(`Connection issue. Reach Roy at ${CONTACT_EMAIL}!`)
+      }
     }
     setLoading(false)
   }, [input, loading, messages, setMessages])
