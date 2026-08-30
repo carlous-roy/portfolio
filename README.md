@@ -16,12 +16,10 @@ answers questions about my work.
 
 The assistant is the part with the most going on. Sending a full biography with every message is
 slow and expensive, so query keywords select which context blocks get appended to the system prompt:
-ask about projects and you get project context, ask about hobbies and you do not. Around that sits
-key rotation with failover, client-side rate limiting at 15 requests per 5 minutes, and an in-memory
-cache for repeated questions.
-
-Several bugs in this repo were invisible for the same reason, which is worth reading if you write
-error handlers. See [Things that broke](#things-that-broke) below.
+ask about projects and you get project context, ask about hobbies and you do not. The model call
+runs through a serverless function rather than from the browser, which is what keeps the API key
+off the client; around that sit key failover, request bounds, and an in-memory cache for repeated
+questions.
 
 [Live](https://roycarlous.com) · [Case study: CodeAtlas](https://roycarlous.com/case-studies/codeatlas.html)
 
@@ -46,6 +44,8 @@ on a Sony A7 V), a contact form, and the Gemini assistant.
 ## Architecture
 
 ```
+api/
+└── chat.js                     # Serverless proxy; holds the Gemini key server-side
 src/
 ├── App.jsx                     # Root, sections, navigation, theme
 ├── main.jsx                    # React DOM entry
@@ -59,8 +59,9 @@ public/
 ├── roy-default.jpg             # Default profile photo
 ├── roy.jpg, roy-casual.jpg     # Cycling profile photos
 ├── Roy_Resume.pdf              # Downloadable resume
+├── skill-icons/                # Tool logos used by the Skills grid
 ├── case-studies/
-│   └── codeatlas.html              # Standalone case study, linked from Projects
+│   └── codeatlas.html          # Standalone case study, linked from Projects
 └── favicon.png
 ```
 
@@ -70,16 +71,19 @@ public/
 git clone https://github.com/carlous-roy/portfolio.git
 cd portfolio
 npm install
-cp .env.example .env            # Add Gemini API keys
-npm run dev                     # → http://localhost:5173
+cp .env.example .env            # add GEMINI_API_KEY
+vercel dev                      # → http://localhost:3000, serves /api/chat too
 ```
 
 ### Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `VITE_GEMINI_KEY_1` | Yes | Primary Gemini API key |
-| `VITE_GEMINI_KEY_2` | Recommended | Fallback key for rotation |
+| `GEMINI_API_KEY` | Yes | Gemini API key, read server-side by `/api/chat` |
+| `GEMINI_API_KEY_2` | Optional | Second key, tried when the first returns a quota error |
+
+Neither is `VITE_`-prefixed, deliberately: Vite inlines `VITE_` variables into the client
+bundle, which would publish the key.
 
 Free keys: [Google AI Studio](https://aistudio.google.com/app/apikey)
 
@@ -89,7 +93,7 @@ Free keys: [Google AI Studio](https://aistudio.google.com/app/apikey)
 
 1. Import repo at [vercel.com/new](https://vercel.com/new)
 2. Framework: **Vite** · Build: `npm run build` · Output: `dist`
-3. Add `VITE_GEMINI_KEY_1` and `VITE_GEMINI_KEY_2` in Settings → Environment Variables
+3. Add `GEMINI_API_KEY` (and optionally `GEMINI_API_KEY_2`) in Settings → Environment Variables
 4. Deploy, subsequent pushes to `main` auto-deploy
 
 ### Custom Domain
@@ -103,55 +107,38 @@ Free keys: [Google AI Studio](https://aistudio.google.com/app/apikey)
 | A | @ | 76.76.21.21 |
 | CNAME | www | cname.vercel-dns.com |
 
-## Things that broke
+## Assistant architecture
 
-Recorded here on purpose. Each of these was invisible because an error was thrown and then
-discarded.
+```
+browser ──POST /api/chat──► serverless function ──x-goog-api-key──► Gemini
+   │                              │
+   │  system prompt +             │  key from process.env, never serialised
+   │  conversation turns          │  per-instance rate limit, payload bounds
+   └──◄── completion ─────────────┘  falls through to a second key on 429
+```
 
-**Four stray backticks in `AIChatbot.jsx`.** They should have been double quotes. The first one
-closed the `SYSTEM_PROMPT` template literal about 200 characters in, so everything after it, the
-whole bio, work history and project descriptions, silently stopped being string content and the
-file no longer parsed.
+The browser sends the system prompt and the conversation; the function attaches
+credentials and forwards. Two consequences worth naming: the key is never present in
+anything the client can read, and the request size a caller can push through that key is
+bounded server-side rather than by client code they control.
 
-**A model that had been shut down.** The code still called `gemini-2.0-flash`, deprecated in
-February 2026 and killed on 1 June. The chatbot had been dead for ten weeks and nobody noticed,
-because the handler was `catch { }` with no binding and the user saw a vague "Connection issue".
-
-**Thinking tokens eating the output budget.** Gemini 3.x reasons before answering and draws those
-tokens from `maxOutputTokens`. At 300 the model spent the entire budget thinking and replies came
-back truncated mid-sentence. Now 800, with `thinkingLevel: 'low'`.
-
-**MediaPipe never loading in production.** `@mediapipe/hands` and `camera_utils` ship UMD bundles
-that assign to `window` instead of exporting ES named bindings, so Vite's production build resolved
-`const { Hands } = await import(...)` to `undefined` and `new Hands(...)` threw. The gesture demo
-had been broken for every visitor since March. The camera error handler named only
-`NotAllowedError` and swallowed everything else into "check your camera access", which sent me
-hunting hardware for a bundling bug.
-
-Both handlers now log the actual error type and message. That change is what surfaced the last
-three.
+Context selection happens client-side because it is not security-sensitive — it decides
+which biography blocks ride along with a question, and sending the wrong ones costs
+tokens, not safety.
 
 ## Security
 
-**The Gemini key in this build is public, by construction.** Vite inlines any
-`VITE_`-prefixed variable into the client bundle at build time, so a key supplied that
-way is embedded in the deployed JavaScript and readable by anyone who opens devtools.
-Storing it as a Vercel environment variable protects the repository, not the browser.
-An earlier pair of keys was exposed exactly this way and has been revoked; a
-full-history scan of the repo found no secret in any commit, because the leak lived
-only in the build output.
+**The Gemini key is server-side.** It is read from `process.env` inside `api/chat.js` at
+request time and never enters the client bundle. This is the reason the call is proxied at
+all: Vite inlines any `VITE_`-prefixed variable into the deployed JavaScript at build time,
+so a browser-side key would be readable by anyone who opened devtools.
 
-What that means in practice, and what is actually done about it:
-
-- `.env` is gitignored and no key has ever been committed, verified against full history
-- The keys in use are **restricted to the Gemini API** and carry a spend cap, so the
-  blast radius of exposure is a quota, not an account
-- Dual-key rotation with automatic failover on API errors
-- Client-side rate limiting (15 requests / 5 minutes) and in-memory response caching , 
-  these reduce cost and abuse, but they are client-side and therefore advisory
-- **The real fix is a server-side route handler** so the key never reaches the browser.
-  That is the first task of the Next.js rebuild, and until it ships this section stays
-  as written rather than implying a safety the build does not have.
+- `.env` is gitignored and no key has been committed; verified against full history
+- Keys are scoped to the Generative Language API and carry a spend cap
+- The function bounds conversation length and payload size, so the request a caller can
+  push through the key is limited server-side
+- A second key is tried on quota errors, so an exhausted quota degrades rather than fails
+- Upstream error detail stays on the server; the client receives a status, not a body
 
 ## License
 

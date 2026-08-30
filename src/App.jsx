@@ -14,7 +14,7 @@ const NAV = [
 ]
 const SKILLS = {
   Languages: ['Python', 'Java', 'C++', 'C#/.NET', 'JavaScript', 'SQL', 'HTML/CSS'],
-  'AI & ML': ['scikit-learn', 'Gradient Boosting', 'Feature Engineering', 'Embeddings', 'Semantic Search', 'BM25', 'Hybrid Retrieval (BM25 + dense)', 'Retrieval Evaluation', 'TF-IDF', 'Ollama', 'CodeLlama', 'Gemini API', 'Claude', 'OpenCV', 'MediaPipe', 'Tree-sitter'],
+  'AI & ML': ['scikit-learn', 'Feature Engineering', 'Embeddings', 'Semantic Search', 'BM25', 'Hybrid Retrieval (BM25 + dense)', 'Retrieval Evaluation', 'TF-IDF', 'Ollama', 'CodeLlama', 'Gemini API', 'Claude', 'OpenCV', 'MediaPipe', 'Tree-sitter'],
   'Backend & Distributed': ['Spring Boot', 'FastAPI', 'REST API Design', 'Message Queues', 'Async Job Processing', 'Retries & DLQ', 'Idempotency', 'Rate Limiting', 'AWS SQS', 'AWS S3', 'DynamoDB', 'PostgreSQL', 'MySQL', 'SQLAlchemy', 'Alembic', 'Docker', 'Docker Compose', 'LocalStack', 'Git', 'Maven'],
   'Frontend & Cloud': ['React 18', 'Vite', 'Tailwind CSS', 'PostCSS', 'HTML5 Canvas', 'Responsive Layout', 'Dark Mode', 'Vercel', 'Nginx'],
   'Test & Embedded': ['Teradyne IG-XL', 'UltraFLEX', 'UltraFLEXplus', 'Instrument Drivers', 'Telemetry Acquisition', 'Root-Cause Analysis', 'WinDbg', 'JetBrains Profilers', 'Acceptance Test Automation', 'pytest', 'JUnit', 'Arduino', 'ESP8266', 'Serial Protocols'],
@@ -22,9 +22,9 @@ const SKILLS = {
 }
 const PROJ = [
   { name: 'DiffLens', roles: ['ml', 'backend', 'systems'], sub: 'ML-Powered Code Review Engine', tech: ['Python', 'FastAPI', 'scikit-learn', 'Tree-sitter', 'PostgreSQL', 'React', 'Docker', 'Ollama'], b: [
-    'Static analysis engine that evaluates Python and Java code for complexity, naming conventions, and bug risk patterns using Tree-sitter AST parsing and gradient boosting ML risk scoring',
+    'Static analysis engine that parses Python and Java into Tree-sitter ASTs to measure cyclomatic complexity and nesting depth, then scores pull-request risk from those features alongside finding severity and diff size',
     'GitHub webhook integration to automatically analyze pull requests and post review comments with severity-ranked findings directly on PRs',
-    'FastAPI backend with PostgreSQL review storage, React dashboard with data visualization, Docker Compose deployment, and a 15-file test suite',
+    'FastAPI backend with PostgreSQL review storage, React dashboard with data visualization, Docker Compose deployment, and a 14-file test suite',
   ], gh: 'https://github.com/carlous-roy/DiffLens-Engine', st: 'Demo', link: 'https://difflens.roycarlous.com' },
   { name: 'TaskForge', roles: ['backend', 'fullstack'], sub: 'Distributed Report Generation Engine', tech: ['Java', 'Spring Boot', 'AWS SQS', 'DynamoDB', 'S3', 'Docker', 'React', 'H2'], b: [
     'Distributed report generation system. Requests come in over a REST API, queue through SQS, get processed by independent workers, and land in S3 behind presigned download URLs with TTL expiry',

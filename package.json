@@ -3,14 +3,13 @@
   "private": true,
   "version": "2.0.0",
   "type": "module",
-  "description": "Personal portfolio — Roy Carlous Christudass, Software Engineer",
+  "description": "Personal portfolio \u2014 Roy Carlous Christudass, Software Engineer",
   "author": "Roy Carlous Christudass <roy4edu@gmail.com>",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "lint": "eslint src --ext .js,.jsx"
+    "preview": "vite preview"
   },
   "dependencies": {
     "react": "^18.3.1",
