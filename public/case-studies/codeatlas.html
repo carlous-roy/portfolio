@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CodeAtlas: Case Study · Roy Carlous Christudass</title>
+<meta name="description" content="Semantic search over a codebase, and the evaluation harness that says how well it actually works.">
+<link rel="icon" href="/favicon.png">
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#ffffff; --surface:#fafafa; --border:rgba(0,0,0,0.09);
+    --ink:#0b0b0b; --ink-2:#3f3f46; --ink-3:#71717a;
+    --accent:#DC2626;
+    --series-1:#2a78d6; --series-2:#eb6834;
+    --grid:rgba(0,0,0,0.07);
+    --good-bg:rgba(34,197,94,0.10); --good:#15803d;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --bg:#08080c; --surface:#0f0f14; --border:rgba(255,255,255,0.10);
+      --ink:#f4f4f5; --ink-2:#c4c4cd; --ink-3:#8b8b96;
+      --series-1:#3987e5; --series-2:#d95926;
+      --grid:rgba(255,255,255,0.08);
+      --good-bg:rgba(34,197,94,0.12); --good:#4ade80;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg:#08080c; --surface:#0f0f14; --border:rgba(255,255,255,0.10);
+    --ink:#f4f4f5; --ink-2:#c4c4cd; --ink-3:#8b8b96;
+    --series-1:#3987e5; --series-2:#d95926;
+    --grid:rgba(255,255,255,0.08);
+    --good-bg:rgba(34,197,94,0.12); --good:#4ade80;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:800px;margin:0 auto;padding:clamp(28px,5vw,72px) clamp(20px,5vw,32px) 96px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .back{display:inline-flex;align-items:center;gap:7px;font-size:14px;color:var(--ink-3);margin-bottom:36px}
+  .back:hover{color:var(--accent);text-decoration:none}
+  .eyebrow{font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+  h1{font-size:clamp(30px,5.5vw,46px);line-height:1.08;letter-spacing:-.03em;font-weight:800;margin:0 0 14px}
+  .lede{font-size:clamp(17px,2.2vw,20px);line-height:1.6;color:var(--ink-2);margin:0 0 26px;max-width:62ch}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:38px}
+  .meta a,.meta span{
+    font-size:13px;padding:6px 13px;border:1px solid var(--border);border-radius:999px;
+    color:var(--ink-2);background:var(--surface)
+  }
+  .meta a:hover{color:var(--accent);border-color:var(--accent);text-decoration:none}
+
+  h2{font-size:clamp(21px,3vw,27px);letter-spacing:-.02em;font-weight:700;margin:52px 0 6px}
+  h3{font-size:17px;font-weight:650;margin:32px 0 6px;letter-spacing:-.01em}
+  p{margin:0 0 16px;color:var(--ink-2);max-width:68ch}
+  strong{color:var(--ink);font-weight:650}
+  .rule{height:1px;background:var(--border);border:0;margin:0 0 22px}
+
+  /* stat row */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;margin:26px 0 8px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px}
+  .stat .n{font-size:27px;font-weight:750;letter-spacing:-.02em;line-height:1.1}
+  .stat .l{font-size:12.5px;color:var(--ink-3);margin-top:5px;line-height:1.35}
+
+  /* tables */
+  .scroll{overflow-x:auto;margin:20px 0;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+  table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+  th,td{padding:10px 14px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:600}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr.total td{font-weight:700;color:var(--ink);background:rgba(220,38,38,0.045)}
+  td.neg{color:var(--series-2)}
+
+  /* chart */
+  figure{margin:26px 0 8px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 18px 14px}
+  figcaption{font-size:13px;color:var(--ink-3);margin-top:12px;line-height:1.5}
+  .legend{display:flex;gap:18px;margin:0 0 8px 4px;font-size:13px;color:var(--ink-2)}
+  .legend i{display:inline-block;width:20px;height:3px;border-radius:2px;vertical-align:middle;margin-right:7px}
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis-txt{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;fill:var(--ink-3)}
+  .dlabel{font:600 12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  .hit{fill:transparent;cursor:crosshair}
+  #crosshair{stroke:var(--ink-3);stroke-width:1;stroke-dasharray:3 3;opacity:0}
+  .tip{
+    position:absolute;pointer-events:none;opacity:0;transform:translate(-50%,-115%);
+    background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:9px 12px;
+    font-size:13px;line-height:1.5;box-shadow:0 8px 24px rgba(0,0,0,.16);white-space:nowrap;z-index:5
+  }
+  .tip b{display:block;font-size:12px;color:var(--ink-3);font-weight:600;margin-bottom:3px}
+  .tip .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+  .chartbox{position:relative}
+  details{margin-top:12px;font-size:14px}
+  summary{cursor:pointer;color:var(--ink-3);font-size:13px}
+
+  .callout{
+    border-left:3px solid var(--accent);background:var(--surface);
+    border-radius:0 12px 12px 0;padding:16px 20px;margin:24px 0
+  }
+  .callout p:last-child{margin-bottom:0}
+  ul{color:var(--ink-2);padding-left:20px;max-width:68ch}
+  li{margin-bottom:9px}
+  pre{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:16px 18px;overflow-x:auto;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;
+    color:var(--ink-2)
+  }
+  .foot{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);font-size:14px;color:var(--ink-3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back" href="/">&larr; roycarlous.com</a>
+
+  <div class="eyebrow">Case study</div>
+  <h1>CodeAtlas</h1>
+  <p class="lede">
+    Semantic search over a codebase, and an evaluation harness that says how well it actually
+    works. The retrieval is a weekend. The measurement is the project.
+  </p>
+  <div class="meta">
+    <a href="https://github.com/carlous-roy/CodeAtlas" target="_blank" rel="noopener">Code on GitHub</a>
+    <span>Python &middot; sentence-transformers &middot; Tree-sitter &middot; BM25</span>
+    <span>152 files &middot; 11k lines</span>
+  </div>
+
+  <hr class="rule">
+
+  <div class="stats">
+    <div class="stat"><div class="n">36</div><div class="l">questions with labelled answers</div></div>
+    <div class="stat"><div class="n">0.86</div><div class="l">recall@5, best configuration</div></div>
+    <div class="stat"><div class="n">0.59</div><div class="l">mean reciprocal rank</div></div>
+    <div class="stat"><div class="n">12</div><div class="l">configurations scored on the same set</div></div>
+  </div>
+
+  <h2>Why build the harness first</h2>
+  <p>
+    A retrieval demo is easy to make and impossible to trust. You type a question, you get plausible
+    results, and you have learned nothing about whether the system works on the questions you have
+    not thought of. So the first thing built here was not the retriever, it was the thing that
+    scores it: 36 questions across four codebases with the answering files labelled by hand.
+  </p>
+  <p>
+    Two rules decided whether the set would measure anything. Questions are phrased the way someone
+    new to the repo would ask, <em>"what stops the relays flickering when my hand shakes slightly"</em>,
+    not <em>"find the jitter threshold"</em>. A question that reuses the codebase's own identifiers
+    tests string matching and flatters lexical search. And every file that genuinely answers a
+    question is labelled, not just the first one that came to mind, because under-labelling shows up
+    later as a false failure and costs an afternoon.
+  </p>
+  <p>
+    Relevance is judged at file level: a retrieved chunk counts if its source file is one of the
+    labelled answers. That is more generous than passage-level judging. It is also reproducible,
+    which matters more at this size.
+  </p>
+
+  <h2>The result I did not expect</h2>
+  <p>
+    The hypothesis was that splitting code on declaration boundaries with Tree-sitter should beat
+    sliding a fixed window over it, because a window cuts functions in half and half a function
+    retrieves badly.
+  </p>
+  <p>
+    <strong>The first run said the opposite.</strong> Structural chunking scored recall@5 0.72
+    against the window baseline's 0.81. The clean conclusion would have been that the idea does not
+    work.
+  </p>
+
+  <div class="callout">
+    <p><strong>It was not a clean experiment.</strong></p>
+    <p>
+      Structural chunking produced 819 chunks at a median of 9 lines. The window baseline produced
+      403 at a median of 40. Two variables moved at once, so the result could not separate
+      <em>boundaries in the wrong place</em> from <em>chunks too small to carry meaning</em>. A
+      nine-line method embedded on its own is mostly a signature.
+    </p>
+  </div>
+
+  <p>
+    Merging adjacent declarations up to a 25-line minimum, without ever splitting one, gives 371
+    chunks at a median of 36 lines. Same shape as the baseline. Now only the boundary policy differs:
+  </p>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th>At matched chunk size</th><th>R@1</th><th>R@5</th><th>R@10</th><th>MRR</th><th>nDCG@10</th></tr></thead>
+      <tbody>
+        <tr class="total"><td>Structural, merged</td><td>0.42</td><td>0.81</td><td>0.89</td><td>0.554</td><td>0.618</td></tr>
+        <tr><td>Fixed window</td><td>0.31</td><td>0.81</td><td>0.89</td><td>0.515</td><td>0.596</td></tr>
+        <tr><td>Structural, unmerged (819 chunks)</td><td>0.25</td><td>0.72</td><td>0.89</td><td>0.472</td><td>0.563</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    <strong>Boundaries help ranking, not recall.</strong> The right file reaches the top five either
+    way. Structural boundaries make it more likely to be <em>first</em>, which is what matters when
+    the context budget is five chunks rather than fifty. And chunk size mattered more than boundary
+    policy: getting size wrong wiped out the boundary gain and then some.
+  </p>
+
+  <h2>Every configuration, on the same questions</h2>
+  <figure>
+    <div class="legend">
+      <span><i style="background:var(--series-1)"></i>recall@5</span>
+      <span><i style="background:var(--series-2)"></i>MRR</span>
+    </div>
+    <div class="chartbox">
+      <svg id="chart" viewBox="0 0 760 372" role="img" aria-label="Recall at 5 and MRR for eleven retrieval configurations. Hybrid retrieval on merged structural chunks scores highest on MRR at 0.554; BM25 alone scores lowest across the board."></svg>
+      <div class="tip" id="tip"></div>
+    </div>
+    <figcaption>
+      Three chunking strategies by four retrieval strategies, scored on the same 36 questions.
+      BM25 alone never clears recall@5 0.53. Dense retrieval carries the system; hybrid adds ranking
+      precision on top of it.
+      <details>
+        <summary>Show the numbers</summary>
+        <div class="scroll" style="margin-top:10px">
+          <table>
+            <thead><tr><th>Chunking</th><th>Strategy</th><th>Chunks</th><th>R@1</th><th>R@5</th><th>R@10</th><th>MRR</th><th>nDCG@10</th></tr></thead>
+            <tbody id="metric-rows"></tbody>
+          </table>
+        </div>
+      </details>
+    </figcaption>
+  </figure>
+
+  <h2>The reranker made it worse</h2>
+  <p>
+    Reranking the top 30 with a cross-encoder is close to standard advice, and
+    <code>ms-marco-MiniLM-L-6-v2</code> is the obvious one to reach for. Here it cost MRR on both
+    chunkings: 0.554 down to 0.520 on merged structural chunks, 0.515 down to 0.458 on windows.
+  </p>
+  <p>
+    That model is trained on MS MARCO, which is web passages in natural language. Code is out of
+    distribution for it, and a reranker that is confidently wrong is worse than none at all, because
+    it reorders results the first stage already had roughly right. A code-trained reranker would
+    likely help. Shipping this one because the architecture diagram looks more complete would have
+    been the wrong call, and without the harness I would not have known.
+  </p>
+
+  <h2>Where it fails, and what that cost</h2>
+  <p>
+    Seven of 36 questions still miss at rank five. Reading them produced two failure modes, and both
+    turned out to be measurable rather than impressionistic.
+  </p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Share of the top 5</th><th>On misses</th><th>On hits</th></tr></thead>
+      <tbody>
+        <tr><td>that is documentation, not code</td><td>0.46</td><td>0.29</td></tr>
+        <tr><td>from the wrong project</td><td>0.29</td><td>0.12</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    <strong>Documentation crowds out code.</strong> READMEs are written in the same register as the
+    questions, so they sit closer in embedding space than the code that implements the answer. Ask
+    <em>"where is job state stored so the API and the worker both see it"</em> and all five results
+    are README sections, while the repository class that answers it sits below the cut.
+  </p>
+  <p>
+    <strong>Nothing scopes the query to a project.</strong> The corpus holds four separate projects.
+    <em>"Is anything stopping one client from hammering the API"</em> is a reasonable question about
+    two of them, and the retriever has no way to know which one is meant.
+  </p>
+  <p>
+    There is a third mode that no amount of ranking fixes. <em>"What kinds of report can this
+    produce"</em> needs the complete set, spread across four files. Retrieval is a similarity
+    function, not an aggregation, and asking it for an exhaustive list is asking the wrong thing of
+    it.
+  </p>
+
+  <h3>The fix that came out of reading the failures</h3>
+  <p>
+    The first mode has a small fix: cap how many chunks any single file may contribute, so one long
+    README cannot occupy the whole context window. Overflow is pushed below the survivors rather
+    than discarded.
+  </p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Configuration</th><th>R@1</th><th>R@3</th><th>R@5</th><th>R@10</th><th>MRR</th></tr></thead>
+      <tbody>
+        <tr><td>hybrid</td><td>0.42</td><td>0.67</td><td>0.81</td><td>0.89</td><td>0.554</td></tr>
+        <tr><td>hybrid + per-file cap 2</td><td>0.42</td><td>0.72</td><td>0.81</td><td>0.89</td><td>0.560</td></tr>
+        <tr class="total"><td>hybrid + per-file cap 1</td><td>0.42</td><td>0.78</td><td>0.86</td><td>0.92</td><td>0.591</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    About ten lines, for +0.11 recall@3 and +0.037 MRR. It came from reading what the system got
+    wrong, not from tuning parameters until a number moved. That is the argument for building the
+    harness before the retriever.
+  </p>
+
+  <h2>How it works</h2>
+  <pre>files ──► chunker ──┬─► BM25 index          ┐
+                    └─► MiniLM embeddings   ├─► RRF fusion ─► per-file cap ─► top k
+                                            ┘</pre>
+  <p>
+    Tree-sitter splits Python and Java on declaration boundaries, one chunk per function, method or
+    class, with the enclosing scope kept in the chunk name. Markdown splits on headings and the
+    heading path is prefixed onto the text, so a section called "Retries" nested under "Fault
+    Tolerance" is findable by either term. Imports and module-level constants become a preamble
+    chunk rather than being dropped, because <em>"what is the retry limit"</em> often needs exactly
+    that.
+  </p>
+  <p>
+    BM25 tokenization splits identifiers as well as words, so <code>RateLimitFilter</code> is
+    reachable from "rate limit". Fusion is Reciprocal Rank Fusion rather than a weighted blend,
+    because BM25 scores and cosine similarities are not on a comparable scale and normalising them
+    introduces a weight nobody can tune honestly against 36 questions.
+  </p>
+
+  <h2>What I would do differently</h2>
+  <ul>
+    <li>
+      <strong>36 questions is a small set.</strong> A five-point gap between two strategies is within
+      noise at this size, which is why the conclusions above lean on the differences that are large
+      and consistent across chunkings rather than on any single cell. Two hundred questions would
+      let me put intervals on this, and I would trust the reranker result more.
+    </li>
+    <li>
+      <strong>I wrote both the questions and the code being searched.</strong> That is the cleanest
+      way to get honest labels at this scale, and it is also the obvious bias: I already know what
+      the answer files are called. Questions from someone who has never seen the codebase would be
+      harder and more realistic.
+    </li>
+    <li>
+      <strong>File-level relevance is generous.</strong> A chunk from the right file counts even when
+      it is the wrong function in that file. Passage-level judgements would be stricter and would
+      lower every number here.
+    </li>
+    <li>
+      <strong>No generation, so no faithfulness measurement.</strong> This evaluates retrieval only.
+      Retrieval quality bounds answer quality, so it is the right thing to fix first, but whether a
+      model's answer actually follows from the retrieved context is a separate measurement I have
+      not made.
+    </li>
+    <li>
+      <strong>Project routing is the obvious next fix.</strong> The wrong-project rate more than
+      doubles on failures. A cheap classifier over the query addresses more of the remaining gap
+      than further ranking work would.
+    </li>
+  </ul>
+
+  <div class="foot">
+    Roy Carlous Christudass &middot; AI Software Engineer &middot;
+    <a href="/">roycarlous.com</a> &middot;
+    <a href="https://github.com/carlous-roy" target="_blank" rel="noopener">GitHub</a> &middot;
+    <a href="https://www.linkedin.com/in/roy-carlous-c/" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+</div>
+
+<script>
+(function(){
+  var D = [
+    {ck:"structural-merged", st:"bm25",          n:371, r1:0.14, r5:0.44, r10:0.58, mrr:0.256, nd:0.342},
+    {ck:"structural-merged", st:"dense",         n:371, r1:0.39, r5:0.78, r10:0.78, mrr:0.554, nd:0.577},
+    {ck:"structural-merged", st:"hybrid",        n:371, r1:0.42, r5:0.81, r10:0.89, mrr:0.554, nd:0.618},
+    {ck:"structural-merged", st:"hybrid+rerank", n:371, r1:0.36, r5:0.78, r10:0.89, mrr:0.520, nd:0.577},
+    {ck:"window",            st:"bm25",          n:403, r1:0.11, r5:0.50, r10:0.67, mrr:0.246, nd:0.362},
+    {ck:"window",            st:"dense",         n:403, r1:0.36, r5:0.81, r10:0.83, mrr:0.548, nd:0.594},
+    {ck:"window",            st:"hybrid",        n:403, r1:0.31, r5:0.81, r10:0.89, mrr:0.515, nd:0.596},
+    {ck:"window",            st:"hybrid+rerank", n:403, r1:0.31, r5:0.72, r10:0.81, mrr:0.458, nd:0.537},
+    {ck:"structural",        st:"bm25",          n:819, r1:0.08, r5:0.53, r10:0.64, mrr:0.251, nd:0.349},
+    {ck:"structural",        st:"dense",         n:819, r1:0.36, r5:0.75, r10:0.81, mrr:0.503, nd:0.561},
+    {ck:"structural",        st:"hybrid",        n:819, r1:0.25, r5:0.72, r10:0.89, mrr:0.472, nd:0.563}
+  ];
+
+  document.getElementById('metric-rows').innerHTML = D.map(function(d){
+    var hl = (d.ck==="structural-merged" && d.st==="hybrid") ? ' class="total"' : '';
+    return '<tr'+hl+'><td>'+d.ck+'</td><td style="text-align:left">'+d.st+'</td><td>'+d.n+'</td><td>'+
+      d.r1.toFixed(2)+'</td><td>'+d.r5.toFixed(2)+'</td><td>'+d.r10.toFixed(2)+'</td><td>'+
+      d.mrr.toFixed(3)+'</td><td>'+d.nd.toFixed(3)+'</td></tr>';
+  }).join('');
+
+  var W=760,H=372,M={t:14,r:18,b:128,l:44};
+  var iw=W-M.l-M.r, ih=H-M.t-M.b;
+  var n=D.length, band=iw/n;
+  var y=function(v){return M.t+(1-v)*ih;};
+  var s=[];
+
+  [0,0.25,0.5,0.75,1].forEach(function(v){
+    s.push('<line class="gridline" x1="'+M.l+'" y1="'+y(v)+'" x2="'+(M.l+iw)+'" y2="'+y(v)+'"/>');
+    s.push('<text class="axis-txt" x="'+(M.l-9)+'" y="'+(y(v)+4)+'" text-anchor="end">'+v.toFixed(2)+'</text>');
+  });
+
+  // group separators between chunking strategies
+  [4,8].forEach(function(i){
+    s.push('<line x1="'+(M.l+band*i)+'" y1="'+M.t+'" x2="'+(M.l+band*i)+'" y2="'+(M.t+ih+100)+'" stroke="var(--border)" stroke-width="1"/>');
+  });
+  [{a:0,b:4,l:"structural-merged"},{a:4,b:8,l:"window"},{a:8,b:11,l:"structural (unmerged)"}].forEach(function(g){
+    s.push('<text class="axis-txt" x="'+(M.l+band*(g.a+g.b)/2)+'" y="'+(M.t+ih+92)+'" text-anchor="middle" style="font-weight:600">'+g.l+'</text>');
+  });
+
+  var bw=Math.min(14, band*0.3);
+  D.forEach(function(d,i){
+    var cx=M.l+band*(i+0.5);
+    // two bars per configuration, 2px apart, rounded ends anchored to the baseline
+    s.push('<rect x="'+(cx-bw-1)+'" y="'+y(d.r5)+'" width="'+bw+'" height="'+(y(0)-y(d.r5))+'" rx="3" fill="var(--series-1)"/>');
+    s.push('<rect x="'+(cx+1)+'" y="'+y(d.mrr)+'" width="'+bw+'" height="'+(y(0)-y(d.mrr))+'" rx="3" fill="var(--series-2)"/>');
+    s.push('<g transform="translate('+cx+','+(M.t+ih+14)+') rotate(-42)">'+
+           '<text class="axis-txt" text-anchor="end" x="0" y="0">'+d.st+'</text></g>');
+  });
+  s.push('<line x1="'+M.l+'" y1="'+y(0)+'" x2="'+(M.l+iw)+'" y2="'+y(0)+'" stroke="var(--grid)" stroke-width="1"/>');
+  s.push('<rect class="hit" x="'+M.l+'" y="'+M.t+'" width="'+iw+'" height="'+ih+'"/>');
+
+  var svg=document.getElementById('chart');
+  svg.innerHTML=s.join('');
+
+  var tip=document.getElementById('tip'), box=svg.parentNode;
+  function move(ev){
+    var r=svg.getBoundingClientRect(), scale=W/r.width;
+    var px=(ev.clientX-r.left)*scale-M.l;
+    var i=Math.floor(px/band);
+    if(i<0||i>=n){ leave(); return; }
+    var d=D[i];
+    tip.innerHTML='<b>'+d.ck+' / '+d.st+'</b>'+
+      '<span class="sw" style="background:var(--series-1)"></span>recall@5 '+d.r5.toFixed(2)+'<br>'+
+      '<span class="sw" style="background:var(--series-2)"></span>MRR '+d.mrr.toFixed(3)+'<br>'+
+      '<span style="color:var(--ink-3)">'+d.n+' chunks &middot; nDCG@10 '+d.nd.toFixed(3)+'</span>';
+    tip.style.left=((M.l+band*(i+0.5))/scale)+'px';
+    tip.style.top=(Math.min(y(d.r5),y(d.mrr))/scale)+'px';
+    tip.style.opacity=1;
+  }
+  function leave(){ tip.style.opacity=0; }
+  box.addEventListener('mousemove',move);
+  box.addEventListener('mouseleave',leave);
+  box.addEventListener('touchmove',function(e){ if(e.touches[0]) move(e.touches[0]); },{passive:true});
+})();
+</script>
+</body>
+</html>
