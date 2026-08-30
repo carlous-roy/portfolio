@@ -11,8 +11,12 @@
   --gradient-warm: linear-gradient(135deg, #DC2626 0%, #EA580C 50%, #F59E0B 100%);
 }
 
-html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-body { margin: 0; padding: 0; overflow-x: hidden; font-family: 'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
+/* html and body carried no background, so the browser painted its default white
+   in the frame between the intro unmounting and the app's first paint. Setting it
+   here and on <body> in index.html removes that flash; App.jsx keeps it in sync
+   when the theme is toggled. */
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; background: #08080c; }
+body { margin: 0; padding: 0; overflow-x: hidden; background: #08080c; font-family: 'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
 
 ::selection { background: rgba(220, 38, 38, 0.2); color: inherit; }
 ::-webkit-scrollbar { width: 5px; }

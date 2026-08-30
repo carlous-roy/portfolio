@@ -9,58 +9,74 @@ const GREETINGS = [
   { text: 'こんにちは', duration: 2000 }, { text: 'مرحبا', duration: 2000 }, { text: 'Привет', duration: 2000 },
 ]
 const NAV = [
-  { id: 'hero', l: 'Home' }, { id: 'about', l: 'About' }, { id: 'experience', l: 'Experience' },
-  { id: 'projects', l: 'Projects' }, { id: 'skills', l: 'Skills' }, { id: 'education', l: 'Education' }, { id: 'contact', l: 'Contact' },
+  { id: 'hero', l: 'Home' }, { id: 'about', l: 'About' }, { id: 'skills', l: 'Skills' },
+  { id: 'experience', l: 'Experience' }, { id: 'projects', l: 'Projects' }, { id: 'education', l: 'Education' }, { id: 'contact', l: 'Contact' },
 ]
 const SKILLS = {
-  Languages: ['Java', 'Python', 'C#', 'C++', 'JavaScript', 'HTML/CSS'],
-  'Cloud & DevOps': ['AWS SQS', 'AWS S3', 'AWS DynamoDB', 'Docker', 'Docker Compose'],
-  'Frameworks & Libraries': ['Spring Boot', 'FastAPI', 'React', 'SQLAlchemy', 'scikit-learn', 'Tree-sitter'],
-  Databases: ['PostgreSQL', 'DynamoDB', 'H2', 'AWS S3'],
-  Tools: ['Git', 'Maven', 'pytest', 'JUnit', 'JIRA', 'VersionVault', 'Swagger/OpenAPI', 'Ollama'],
-  Concepts: ['Distributed Systems', 'REST APIs', 'Message Queues', 'OOP Design Patterns', 'ML Pipelines', 'Static Analysis'],
+  Languages: ['Python', 'Java', 'C++', 'C#/.NET', 'JavaScript', 'SQL', 'HTML/CSS'],
+  'AI & ML': ['scikit-learn', 'Gradient Boosting', 'Feature Engineering', 'Embeddings', 'Semantic Search', 'BM25', 'Hybrid Retrieval (BM25 + dense)', 'Retrieval Evaluation', 'TF-IDF', 'Ollama', 'CodeLlama', 'Gemini API', 'Claude', 'OpenCV', 'MediaPipe', 'Tree-sitter'],
+  'Backend & Distributed': ['Spring Boot', 'FastAPI', 'REST API Design', 'Message Queues', 'Async Job Processing', 'Retries & DLQ', 'Idempotency', 'Rate Limiting', 'AWS SQS', 'AWS S3', 'DynamoDB', 'PostgreSQL', 'MySQL', 'SQLAlchemy', 'Alembic', 'Docker', 'Docker Compose', 'LocalStack', 'Git', 'Maven'],
+  'Frontend & Cloud': ['React 18', 'Vite', 'Tailwind CSS', 'PostCSS', 'HTML5 Canvas', 'Responsive Layout', 'Dark Mode', 'Vercel', 'Nginx'],
+  'Test & Embedded': ['Teradyne IG-XL', 'UltraFLEX', 'UltraFLEXplus', 'Instrument Drivers', 'Telemetry Acquisition', 'Root-Cause Analysis', 'WinDbg', 'JetBrains Profilers', 'Acceptance Test Automation', 'pytest', 'JUnit', 'Arduino', 'ESP8266', 'Serial Protocols'],
+  'Data & BI': ['Power BI Dashboards', 'SQL', 'PostgreSQL', 'MySQL', 'pandas', 'NumPy', 'ETL Pipelines', 'KPI & Trend Reporting'],
 }
 const PROJ = [
-  { name: 'TaskForge', sub: 'Distributed Report Generation Engine', tech: ['Java', 'Spring Boot', 'AWS SQS', 'DynamoDB', 'S3', 'Docker', 'React', 'H2'], b: [
-    'Distributed report generation system — requests submitted via REST API, queued through SQS, processed by independent workers, stored in S3 with presigned download URLs with TTL expiry',
-    'Fault-tolerance patterns: exponential backoff with jitter, dead letter queues, idempotency enforcement, graceful shutdown, and rate limiting (60 req/min per IP)',
-    'Correlation ID tracing across the full pipeline, three report generators from real H2 business data, and an embedded React dashboard with live job status tracking',
-  ], gh: 'https://github.com/carlous-roy/TaskForge-Engine', st: 'Live', link: 'https://taskforge.roycarlous.com' },
-  { name: 'DiffLens', sub: 'ML-Powered Code Review Engine', tech: ['Python', 'FastAPI', 'scikit-learn', 'Tree-sitter', 'PostgreSQL', 'React', 'Docker', 'Ollama'], b: [
+  { name: 'DiffLens', roles: ['ml', 'backend', 'systems'], sub: 'ML-Powered Code Review Engine', tech: ['Python', 'FastAPI', 'scikit-learn', 'Tree-sitter', 'PostgreSQL', 'React', 'Docker', 'Ollama'], b: [
     'Static analysis engine that evaluates Python and Java code for complexity, naming conventions, and bug risk patterns using Tree-sitter AST parsing and gradient boosting ML risk scoring',
     'GitHub webhook integration to automatically analyze pull requests and post review comments with severity-ranked findings directly on PRs',
-    'FastAPI backend with PostgreSQL review storage, React dashboard with data visualization, Docker Compose deployment, and a 14-file test suite',
-  ], gh: 'https://github.com/carlous-roy/DiffLens-Engine', st: 'Live', link: 'https://difflens.roycarlous.com' },
-  { name: 'Portfolio', sub: 'Personal Website', tech: ['React', 'Vite', 'Tailwind CSS', 'Gemini 2.0 Flash'], b: [
+    'FastAPI backend with PostgreSQL review storage, React dashboard with data visualization, Docker Compose deployment, and a 15-file test suite',
+  ], gh: 'https://github.com/carlous-roy/DiffLens-Engine', st: 'Demo', link: 'https://difflens.roycarlous.com' },
+  { name: 'TaskForge', roles: ['backend', 'fullstack'], sub: 'Distributed Report Generation Engine', tech: ['Java', 'Spring Boot', 'AWS SQS', 'DynamoDB', 'S3', 'Docker', 'React', 'H2'], b: [
+    'Distributed report generation system. Requests come in over a REST API, queue through SQS, get processed by independent workers, and land in S3 behind presigned download URLs with TTL expiry',
+    'Fault-tolerance patterns: exponential backoff with jitter, dead letter queues, idempotency enforcement, graceful shutdown, and rate limiting (60 req/min per IP)',
+    'Correlation ID tracing across the full pipeline, three report generators from real H2 business data, and an embedded React dashboard with live job status tracking',
+  ], gh: 'https://github.com/carlous-roy/TaskForge-Engine', st: 'Demo', link: 'https://taskforge.roycarlous.com' },
+  { name: 'Portfolio', roles: ['fullstack', 'ml'], sub: 'Personal Website', tech: ['React', 'Vite', 'Tailwind CSS', 'Gemini 3.5 Flash'], b: [
     'Cinematic multi-phase intro animation using HTML5 Canvas rendering and a phase state machine, with real-time background particle system',
-    'Gemini 2.0 Flash API integration with context-aware prompt injection, dual-key rotation for failover, client-side rate limiting, and response caching',
+    'Gemini 3.5 Flash API integration with context-aware prompt injection, dual-key rotation for failover, client-side rate limiting, and response caching',
   ], gh: 'https://github.com/carlous-roy/portfolio', st: 'Live', link: 'https://roycarlous.com' },
-  { name: 'GestureControl', sub: 'AI Gesture-Based Home Automation', tech: ['Python', 'OpenCV', 'MediaPipe', 'PyFirmata', 'Arduino UNO'], b: [
-    'Real-time hand gesture recognition pipeline at 30 FPS — OpenCV capture, MediaPipe 21-landmark detection, finger counting algorithm, and Arduino relay control',
-    'Custom finger counting with distance-based thumb detection, 15px jitter threshold, and 3-frame stabilization window to prevent false triggers',
-    'Controls 4-channel relay module via PyFirmata serial protocol, mapping 0-5 finger gestures to individual appliance states',
-  ], gh: 'https://github.com/carlous-roy/GestureControl-Engine', st: 'Live', link: 'https://gesture.roycarlous.com' },
+  { name: 'GestureControl', roles: ['ml', 'systems'], sub: 'Real-Time Machine Vision to Hardware Control', tech: ['Python', 'OpenCV', 'MediaPipe', 'PyFirmata', 'Arduino UNO'], b: [
+    'A 30 FPS vision-to-actuator control loop. MediaPipe runs two models per frame: an SSD palm detector, then direct regression of 21 3D hand landmarks inside the cropped palm box',
+    'A geometric classifier on top reads finger state from landmark geometry, comparing each fingertip against its PIP joint on the vertical axis. The thumb needs its own rule, since it moves laterally rather than vertically',
+    'A 15px jitter threshold and a 3-frame stabilization window suppress false triggers before anything reaches the relays, and relays hold their last state when the hand leaves frame',
+    'Drives a 4-channel relay module over PyFirmata serial to an Arduino UNO. A simulation mode runs and tests the whole loop with no board attached, which is what makes it demoable and CI-friendly',
+  ], gh: 'https://github.com/carlous-roy/GestureControl-Engine', st: 'Demo', link: 'https://gesture.roycarlous.com' },
+  { name: 'CodeAtlas', roles: ['ml', 'data', 'backend'], sub: 'Semantic Code Search with a Published Retrieval Evaluation', tech: ['Python', 'sentence-transformers', 'Tree-sitter', 'BM25', 'NumPy'], b: [
+    'Semantic search over a 152-file, 11k-line codebase, and an evaluation harness that says how well it works: 36 questions with labelled answers, scored across four retrieval strategies and three chunking strategies',
+    'Tree-sitter chunking on declaration boundaries plus hybrid BM25 and embedding retrieval fused with Reciprocal Rank Fusion, reaching recall@5 0.86 and MRR 0.591. Chunking on structure beat fixed windows on ranking, recall@1 0.42 against 0.31, but only once chunk size was held constant. The first version of that experiment moved size and boundaries together and had to be redone',
+    'Diagnosed the remaining misses rather than tuning past them. Documentation filled 46% of the top 5 on failures against 29% on successes, so a per-file cap lifted recall@3 from 0.67 to 0.78 in about ten lines. A standard MS MARCO cross-encoder reranker lowered MRR here, because web-passage training does not transfer to code',
+  ], gh: 'https://github.com/carlous-roy/CodeAtlas', st: 'Case Study', link: '/case-studies/codeatlas.html' },
+]
+const ROLE_FILTERS = [
+  { id: 'all', label: 'All' },
+  { id: 'backend', label: 'Backend & Distributed' },
+  { id: 'ml', label: 'AI/ML' },
+  { id: 'data', label: 'Data & Analytics' },
+  { id: 'fullstack', label: 'Full-Stack' },
+  { id: 'systems', label: 'Systems' },
 ]
 const EDU = [
-  { school: 'Wright State University', loc: 'Fairborn, OH', deg: 'Master of Science in Computer Science', period: 'Aug 2024 — May 2026', courses: 'Algorithm Design and Analysis, Distributed Computing, Foundations of AI, Advanced Computer Networks' },
-  { school: 'Sathyabama Institute of Science and Technology', loc: 'Chennai, India', deg: 'Bachelor of Engineering in ECE', period: 'Aug 2018 — Jun 2022', courses: '' },
+  { school: 'Wright State University', loc: 'Fairborn, OH', deg: 'Master of Science in Computer Science', period: 'Aug 2024 — Aug 2026', courses: 'Foundations of AI, Information Retrieval, Algorithm Design and Analysis, Distributed Computing, Advanced Computer Networks, Reverse Engineering and Program Analysis' },
+  { school: 'Sathyabama Institute of Science and Technology', loc: 'Chennai, India', deg: 'Bachelor of Engineering in Electronics and Communication Engineering', period: 'Aug 2018 — Jun 2022', courses: '' },
 ]
 
 // Experience data — 3 roles at HCLTech/Teradyne
 const EXP_ROLES = [
-  { title: 'Senior Software Engineer', period: 'Jan 2024 — Aug 2024', color: 'tx', opacity: 0.3, bullets: [
-    "Developed and maintained high-performance C++ and C# instrument drivers for Teradyne's IGXL semiconductor test platform (Flex, UltraFlex, UltraFlex+ systems)",
-    'Resolved 150+ software defects and acceptance test issues across multiple product lines, ensuring regression-free releases',
-    'Introduced new language nodes for analog instruments within the IGXL environment, enhancing system capabilities for semiconductor test engineering',
+  { title: 'Senior Software Engineer', period: 'Jan 2024 \u2014 Aug 2024', color: 'tx', opacity: 0.3, bullets: [
+    "Owned C++ and C#/.NET instrument driver development for Teradyne's IG-XL automated test equipment platform (UltraFLEX, UltraFLEXplus), controlling and measuring analog instruments in real time, where a driver defect stops a production line",
+    'Was the sole escalation point for critical ATE stopper issues affecting end customers, and built the Power BI dashboards that tracked issue trends across both tester platforms. Scattered escalation records became a view of where defects clustered by platform, module and instrument, which cut mean time to resolution on the recurring classes',
+    'Cut root-cause time on memory leaks and performance regressions by moving legacy diagnostic workflows onto an AI-assisted debugging framework (WinDbg, JetBrains Timeline Profiler, automated flagging of regressions between builds), which reduced repeat escalations on defects that had kept coming back',
+    'Worked across teams migrating the IG.NET framework from C++ to a modern C#/.NET architecture: triaged the defect backlog across the ported modules and profiled runtime performance against the original to catch bottlenecks before deployment. Zero production stoppers on the releases managed',
   ]},
-  { title: 'Software Engineer', period: 'Aug 2022 — Dec 2023', color: 'su', opacity: 0.15, bullets: [
-    'Extended complex driver architectures to implement new instrument capabilities for next-generation test hardware within an Agile C++ and C#/.NET engineering team',
-    'Developed comprehensive unit tests and auto test suites, fixing numerous defective acceptance tests and aligning coverage with evolving IGXL requirements',
-    'Managed source code integrity through VersionVault (ClearCase) with rigorous branching and merge strategies across Analog, Core, and Digital codebases',
+  { title: 'Software Engineer', period: 'Aug 2022 \u2014 Dec 2023', color: 'su', opacity: 0.15, bullets: [
+    'Resolved 150+ defects across three analog instrument driver codebases (DC30, DC70, DC75) by tracing failures through automated acceptance-test logs and captured measurement data, bringing all three product lines to regression-free release status',
+    'Introduced new language nodes for analog instruments in the IG-XL environment, extending automated test coverage to next-generation hardware that had previously required manual configuration',
+    'Extended C++ and C#/.NET driver architectures for new instrument capabilities in an Agile team spanning the US, Europe and Asia-Pacific, and wrote the unit and acceptance suites behind them, including repairing defective legacy tests against evolving IG-XL requirements',
+    'Managed source code integrity through VersionVault (ClearCase) with branching and merge strategies across the Analog, Core and Digital codebases',
   ]},
-  { title: 'Graduate Engineer Trainee', period: 'Jan 2022 — Jul 2022', color: 'mu', opacity: 0.1, bullets: [
-    'Completed technical training in C++, C#/.NET, and OOP/OOD principles, gaining hands-on exposure to analog instrument driver architectures and semiconductor test equipment',
-    'Collaborated with cross-functional teams to support IGXL platform workflows, contributing to status reporting and chip docking processes via JIRA-tracked delivery',
+  { title: 'Graduate Engineer Trainee', period: 'Jan 2022 \u2014 Jul 2022', color: 'mu', opacity: 0.1, bullets: [
+    'Completed technical training in C++, C#/.NET and OOP/OOD principles, working alongside driver engineers to build a working understanding of analog instrument architecture and its driver code',
+    'Gained hands-on exposure to semiconductor test equipment, including the chip docking process on live testers, tracking delivery through JIRA',
   ]},
 ]
 
@@ -82,6 +98,145 @@ const Ic = {
   Code: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>,
   Layers: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>,
   GradCap: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>,
+}
+
+// A glyph per category, inline so it inherits currentColor and themes with the
+// site, plus the tools that category is best known by as real brand icons.
+// skillicons.dev returns one SVG for a comma-separated list, so a card costs one
+// request rather than six. perline=3 lays them out three across, two down.
+//
+// Only tools that actually have an icon are listed, and only ones Roy has really
+// used. Short categories stay short rather than getting padded with something
+// adjacent; the count beside the name says how many more are behind the click.
+const SkillIcon = {
+  'AI & ML': () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="2.6"/><circle cx="5" cy="6" r="1.8"/><circle cx="19" cy="6" r="1.8"/><circle cx="5" cy="18" r="1.8"/><circle cx="19" cy="18" r="1.8"/><path d="M6.5 7.2 10 10.4M17.5 7.2 14 10.4M6.5 16.8 10 13.6M17.5 16.8 14 13.6"/></svg>,
+  Languages: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="8 6 2 12 8 18"/><polyline points="16 6 22 12 16 18"/><line x1="13.5" y1="4.5" x2="10.5" y2="19.5"/></svg>,
+  'Backend & Distributed': () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2.5" y="3" width="19" height="6" rx="1.6"/><rect x="2.5" y="15" width="19" height="6" rx="1.6"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/><path d="M12 9v6"/></svg>,
+  'Frontend & Cloud': () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.2 11.2 3.9 3.9 0 0 0 7 19z"/><path d="M9.5 14.5 12 12l2.5 2.5"/></svg>,
+  'Test & Embedded': () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 7V4M14 7V4M10 20v-3M14 20v-3M7 10H4M7 14H4M20 10h-3M20 14h-3"/></svg>,
+  'Data & BI': () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="5"/><line x1="19" y1="20" x2="19" y2="15"/><line x1="2.5" y1="20" x2="21.5" y2="20"/></svg>,
+}
+
+// Exactly six tiles per category, laid out 3 x 2.
+//
+// Some of these tools have a brand icon and some do not: BM25 and Power BI are
+// real parts of the work with no logo to show. Rather than pad the grid with
+// something adjacent just to reach six, a tile without an icon renders as a
+// short label in the same square. The grid stays even and nothing is claimed
+// that is not used.
+//
+// Brand icons come from skillicons.dev, one request per tile, lazy-loaded, with
+// a fallback to the label if the service is unreachable.
+const SKILL_TILES = {
+  // Each logo appears on exactly one card, so the grid reads as six distinct
+  // areas rather than the same mark repeated. `i` is a skillicons slug, `f` is
+  // a file in /skill-icons for the tools skillicons has no icon for.
+  Languages: [
+    { i: 'py', l: 'Python' }, { i: 'java', l: 'Java' }, { i: 'cpp', l: 'C++' },
+    { i: 'cs', l: 'C#' }, { i: 'js', l: 'JavaScript' }, { i: 'html', l: 'HTML' },
+  ],
+  'AI & ML': [
+    { i: 'sklearn', l: 'scikit-learn' }, { i: 'opencv', l: 'OpenCV' },
+    { f: 'mediapipe', l: 'MediaPipe' }, { f: 'ollama', l: 'Ollama' },
+    { f: 'gemini', l: 'Gemini API' }, { f: 'claude', l: 'Claude' },
+  ],
+  'Backend & Distributed': [
+    { i: 'spring', l: 'Spring' }, { i: 'fastapi', l: 'FastAPI' }, { i: 'aws', l: 'AWS' },
+    { i: 'dynamodb', l: 'DynamoDB' }, { i: 'docker', l: 'Docker' }, { f: 'restapi', l: 'REST APIs' },
+  ],
+  'Frontend & Cloud': [
+    { i: 'react', l: 'React' }, { i: 'vite', l: 'Vite' }, { i: 'tailwind', l: 'Tailwind' },
+    { i: 'css', l: 'CSS' }, { i: 'vercel', l: 'Vercel' }, { i: 'nginx', l: 'Nginx' },
+  ],
+  'Test & Embedded': [
+    { i: 'arduino', l: 'Arduino' }, { f: 'igxl', l: 'Teradyne IG-XL' },
+    { f: 'ultraflex', l: 'UltraFLEXplus' }, { f: 'windbg', l: 'WinDbg' },
+    { f: 'pytest', l: 'pytest' }, { f: 'junit', l: 'JUnit' },
+  ],
+  'Data & BI': [
+    { i: 'postgres', l: 'Postgres' }, { i: 'mysql', l: 'MySQL' }, { f: 'powerbi', l: 'Power BI' },
+    { f: 'pandas', l: 'pandas' }, { f: 'numpy', l: 'NumPy' }, { f: 'sql', l: 'SQL' },
+  ],
+}
+
+const Chevron = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+
+// A skill category: icon, name, count, and the full list behind a click.
+// Collapsed by default so the section reads as six things rather than eighty.
+function SkillTile({ tile, dark, su }) {
+  const [failed, setFailed] = useState(false)
+  const box = `aspect-square rounded-xl flex items-center justify-center overflow-hidden ${dark ? 'bg-white/[0.05]' : 'bg-black/[0.045]'}`
+  const src = tile.f
+    ? `/skill-icons/${tile.f}.png`
+    : tile.i && `https://skillicons.dev/icons?i=${tile.i}&theme=${dark ? 'dark' : 'light'}`
+  if (src && !failed) {
+    return (
+      <span className={box} title={tile.l}>
+        <img
+          src={src} alt="" aria-hidden="true" loading="lazy"
+          className="w-full h-full object-contain"
+          onError={() => setFailed(true)}
+        />
+      </span>
+    )
+  }
+  return (
+    <span className={`${box} px-1.5 text-center leading-tight font-semibold ${su}`}
+          style={{ fontSize: 'clamp(9px, 1.1vw, 12px)' }} title={tile.l}>
+      {tile.l}
+    </span>
+  )
+}
+
+function SkillCard({ cat, items, dark, cBg, cBd, su, mu, open, onToggle }) {
+  const Glyph = SkillIcon[cat]
+  const tiles = SKILL_TILES[cat]
+  const more = items.length - tiles.length
+  const panelId = `skills-${cat.replace(/\W+/g, '-').toLowerCase()}`
+  return (
+    <div className={`rounded-2xl ${cBg} border ${cBd} card-hover overflow-hidden`}>
+      <button
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-controls={panelId}
+        aria-label={`${cat}, ${items.length} skills`}
+        className="w-full p-5 sm:p-6 bg-transparent border-none cursor-pointer text-left font-sans block"
+        style={{ color: 'inherit' }}
+      >
+        {/* Six tiles, three across. The grid takes the full card width, so the
+            tiles scale with the card instead of leaving a gap on the right. */}
+        <span className="grid grid-cols-3 gap-2.5 mb-5">
+          {tiles.map((t, i) => <SkillTile key={t.i || t.l || i} tile={t} dark={dark} su={su} />)}
+        </span>
+        <span className="flex items-center gap-3.5 min-h-[66px]">
+          <span className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: dark ? 'rgba(220,38,38,0.12)' : 'rgba(220,38,38,0.08)', color: '#DC2626' }}>
+            <Glyph />
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="block text-[15px] font-semibold tracking-tight">{cat}</span>
+            <span className={`block text-[12.5px] mt-0.5 ${mu}`}>
+              {more > 0 ? `+${more} more skill${more === 1 ? '' : 's'}` : `${items.length} skills`}
+            </span>
+          </span>
+          <span className={`shrink-0 ${mu} transition-transform duration-300`}
+                style={{ transform: open ? 'rotate(180deg)' : 'none' }}>
+            <Chevron />
+          </span>
+        </span>
+      </button>
+      <div id={panelId} className="grid transition-all duration-300 ease-out"
+           style={{ gridTemplateRows: open ? '1fr' : '0fr' }}>
+        <div className="overflow-hidden">
+          <div className="flex flex-wrap gap-2 px-5 sm:px-6 pb-6 pt-1">
+            {items.map(t => (
+              <span key={t} className={`px-3 py-1.5 rounded-lg text-[13px] font-medium ${dark ? 'bg-white/[0.05]' : 'bg-black/[0.04]'} ${su}`}>{t}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // Cursor glow — follows mouse on desktop, disabled on touch
@@ -124,8 +279,8 @@ function HeroPhoto({ dark }) {
   const [photoIdx, setPhotoIdx] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
   const photos = [
-    { src: '/roy-default.jpg', pos: 'center 15%' },
-    { src: '/roy.jpg', pos: 'center top' },
+    { src: '/roy-default.jpg', pos: 'center center' },
+    { src: '/roy.jpg', pos: 'center center' },
     { src: '/roy-casual.jpg', pos: 'center center' },
   ]
 
@@ -152,8 +307,8 @@ function HeroPhoto({ dark }) {
   const iconSize = isMobile ? 18 : 22
   const socials = [
     { href: 'https://github.com/carlous-roy', icon: <Ic.Github s={iconSize} /> },
-    { href: 'https://linkedin.com/in/roycarlous', icon: <Ic.LinkedIn s={iconSize} /> },
-    { href: 'mailto:roycarlous@gmail.com', icon: <Ic.Mail s={iconSize} /> },
+    { href: 'https://linkedin.com/in/roy-carlous-c', icon: <Ic.LinkedIn s={iconSize} /> },
+    { href: 'mailto:roy4edu@gmail.com', icon: <Ic.Mail s={iconSize} /> },
     { href: 'tel:+13264671939', icon: <Ic.Phone s={iconSize} /> },
   ]
   const angles = [202, 226, 250, 274]
@@ -261,8 +416,22 @@ export default function App() {
   const [chat, setChat] = useState(false)
   const [mobMenu, setMobMenu] = useState(false)
   const [active, setActive] = useState('hero')
+  const [openSkill, setOpenSkill] = useState(null)
+
+  // Keep the document background matching the theme. Without this the html/body
+  // default shows through during the intro-to-app transition and on overscroll.
+  useEffect(() => {
+    const c = dark ? '#08080c' : '#f8f7f4'
+    document.documentElement.style.background = c
+    document.body.style.background = c
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', c)
+  }, [dark])
   const [btt, setBtt] = useState(false)
   const [chatMsgs, setChatMsgs] = useState([])
+  const [role, setRole] = useState(() => { try { return new URLSearchParams(window.location.search).get('role') || 'all' } catch { return 'all' } })
+  useEffect(() => { try { const u = new URL(window.location.href); if (role === 'all') u.searchParams.delete('role'); else u.searchParams.set('role', role); window.history.replaceState({}, '', u) } catch {} }, [role])
+  const match = p => role === 'all' || (p.roles || []).includes(role)
+  const orderedProj = role === 'all' ? PROJ.map(p => [p, false]) : [...PROJ.filter(match).map(p => [p, false]), ...PROJ.filter(p => !match(p)).map(p => [p, true])]
 
   // Track active section + back-to-top visibility
   useEffect(() => {
@@ -323,8 +492,8 @@ export default function App() {
             <div className="flex-1 min-w-0">
               <Reveal><p className="relative" style={{ fontSize: 'clamp(26px, 4.5vw, 52px)', fontWeight: 300, lineHeight: 1.3, color: dark ? '#9ca3af' : '#374151' }}><GreetingCycle /><span className={mu}>, I'm</span></p></Reveal>
               <Reveal delay={0.1}><h1 className="font-black leading-[0.95] mb-5" style={{ fontSize: 'clamp(52px, 10vw, 108px)', letterSpacing: '-0.04em' }}>ROY</h1></Reveal>
-              <Reveal delay={0.2}><p className="mb-1" style={{ fontSize: 'clamp(18px, 2.5vw, 28px)', fontWeight: 400, color: dark ? '#9ca3af' : '#374151' }}>Software Engineer</p></Reveal>
-              <Reveal delay={0.22}><p className={`mb-5 ${mu}`} style={{ fontSize: 'clamp(14px, 1.5vw, 17px)' }}>From India, based in the USA</p></Reveal>
+              <Reveal delay={0.2}><p className="mb-1" style={{ fontSize: 'clamp(18px, 2.5vw, 28px)', fontWeight: 400, color: dark ? '#9ca3af' : '#374151' }}>AI Software Engineer</p></Reveal>
+              <Reveal delay={0.22}><p className={`mb-5 ${mu}`} style={{ fontSize: 'clamp(14px, 1.5vw, 17px)' }}>Machine learning, data and backend systems, built end to end</p></Reveal>
               <Reveal delay={0.25}>
                 <a href="/Roy_Resume.pdf" download className={`inline-flex items-center gap-2 px-5 py-2 rounded-full border ${cBd} bg-transparent ${tx} text-sm font-medium no-underline transition-all hover:-translate-y-0.5 font-sans mb-8 resume-pop`} style={{ backdropFilter: 'blur(12px)', animationDelay: '1s' }}><Ic.DL /> Resume</a>
               </Reveal>
@@ -354,7 +523,13 @@ export default function App() {
           <Reveal><Label t="About" /><h2 className="font-extrabold mb-10" style={{ fontSize: 'clamp(22px, 3vw, 36px)', lineHeight: 1.15, letterSpacing: '-0.025em' }}>Roy Carlous Christudass</h2></Reveal>
           <Reveal delay={0.15}>
             <Body className={su}>
-              CS grad student with an Electronics background — I think at the intersection of hardware-level precision and scalable software systems. Spent 3 years at HCLTech building C++ and C# drivers for Teradyne's semiconductor test platforms, and now I'm channeling that systems-level mindset into pure software engineering. Currently pursuing my MS at Wright State while actively looking for Internship or Full-Time roles where I can bring real engineering rigor to high-impact problems.
+              I'm a software engineer working on AI and data systems. Most of what I build ends up the same shape: data coming in, a model or some logic over it, an API in the middle, and a front end someone actually uses, and I like working across all of that rather than owning one layer.
+            </Body>
+            <Body className={`${su} mt-6`}>
+              Before my master's I spent nearly three years at HCLTech, contracted to Teradyne, writing C++ and C#/.NET drivers for semiconductor test equipment. The software controlled physical hardware, so bugs were expensive and I got good at tracing them. I also ended up owning customer escalations and building the dashboards that tracked them, which is how I got into data work in the first place.
+            </Body>
+            <Body className={`${su} mt-6`}>
+              I'm currently actively looking for Internship or Full-Time roles where I can bring real engineering rigor to high-impact problems.
             </Body>
           </Reveal>
           <Reveal delay={0.3}>
@@ -366,6 +541,25 @@ export default function App() {
               ))}
             </div>
           </Reveal>
+        </div>
+      </section>
+
+      {/* SKILLS */}
+      <section id="skills" className="min-h-[80vh] flex items-center py-28 px-[clamp(24px,6vw,80px)]">
+        <div className="max-w-[960px] mx-auto w-full">
+          <Reveal><Label t="Skills" /><H2 className="mb-12">What I work with.</H2></Reveal>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 items-start">
+            {Object.entries(SKILLS).map(([cat, items], i) => (
+              <Reveal key={cat} delay={i * 0.06}>
+                <SkillCard
+                  cat={cat} items={items} dark={dark}
+                  cBg={cBg} cBd={cBd} su={su} mu={mu}
+                  open={openSkill === cat}
+                  onToggle={() => setOpenSkill(openSkill === cat ? null : cat)}
+                />
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -402,34 +596,24 @@ export default function App() {
       {/* PROJECTS */}
       <section id="projects" className="min-h-screen flex items-center py-28 px-[clamp(24px,6vw,80px)]">
         <div className="max-w-[1000px] mx-auto w-full">
-          <Reveal><Label t="Projects" /><H2 className="mb-14">Things I've built.</H2></Reveal>
+          <Reveal><Label t="Projects" /><H2 className="mb-6">Things I've built.</H2></Reveal>
+          <Reveal><div className="flex flex-wrap gap-2 mb-10">
+            {ROLE_FILTERS.map(f => <button key={f.id} onClick={() => setRole(f.id)} aria-pressed={role === f.id} className={`px-4 py-2 rounded-full text-[13px] font-medium transition-all ${role === f.id ? 'text-white' : `${su} ${dark ? 'bg-white/[0.04]' : 'bg-black/[0.04]'}`}`} style={role === f.id ? { background: '#DC2626' } : undefined}>{f.label}</button>)}
+          </div></Reveal>
           <div className="flex flex-col gap-7">
-            {PROJ.map((p, i) => <Reveal key={i} delay={i * 0.1}><div className={`p-6 md:p-9 rounded-[24px] ${cBg} border ${cBd} card-hover`}>
+            {orderedProj.map(([p, dim], i) => <Reveal key={p.name} delay={i * 0.1}><div className={`p-6 md:p-9 rounded-[24px] ${cBg} border ${cBd} card-hover`} style={{ opacity: dim ? 0.5 : 1, transition: 'opacity .35s ease' }}>
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-3 mb-4">
                 <div>
-                  <h3 className="text-[20px] md:text-[24px] font-bold tracking-tight">{p.name}<span className="ml-3 text-[11px] font-semibold px-3 py-1 rounded-full align-middle" style={{ background: p.st === 'Live' ? 'rgba(34,197,94,0.1)' : 'rgba(245,158,11,0.1)', color: p.st === 'Live' ? '#22c55e' : '#F59E0B' }}>{p.st}</span></h3>
+                  <h3 className="text-[20px] md:text-[24px] font-bold tracking-tight">{p.name}<span className="ml-3 text-[11px] font-semibold px-3 py-1 rounded-full align-middle" style={{ background: (p.st === 'Live' || p.st === 'Demo') ? 'rgba(34,197,94,0.1)' : 'rgba(245,158,11,0.1)', color: (p.st === 'Live' || p.st === 'Demo') ? '#22c55e' : '#F59E0B' }}>{p.st}</span></h3>
                   <p className={`text-[14px] md:text-[15px] mt-1 ${mu}`}>{p.sub}</p>
                 </div>
                 <div className="flex gap-3 shrink-0">
                   {p.gh && <a href={p.gh} target="_blank" rel="noopener noreferrer" className={`${su} flex items-center gap-1.5 text-sm no-underline hover:text-[#DC2626] transition-colors`}><Ic.Github s={18} /> Code</a>}
-                  {p.link && <a href={p.link} target="_blank" rel="noopener noreferrer" className="text-[#DC2626] flex items-center gap-1.5 text-sm no-underline"><Ic.Ext /> Live</a>}
+                  {p.link && <a href={p.link} target="_blank" rel="noopener noreferrer" className="text-[#DC2626] flex items-center gap-1.5 text-sm no-underline"><Ic.Ext /> {p.st}</a>}
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 mb-5">{p.tech.map(t => <span key={t} className={`px-3 py-1.5 rounded-lg text-xs font-mono ${dark ? 'bg-white/[0.04]' : 'bg-black/[0.04]'} ${su}`}>{t}</span>)}</div>
               <BulletList items={p.b} color={su} opacity={0.3} />
-            </div></Reveal>)}
-          </div>
-        </div>
-      </section>
-
-      {/* SKILLS */}
-      <section id="skills" className="min-h-screen flex items-center py-28 px-[clamp(24px,6vw,80px)]">
-        <div className="max-w-[960px] mx-auto w-full">
-          <Reveal><Label t="Skills" /><H2 className="mb-14">What I work with.</H2></Reveal>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 equal-height-grid">
-            {Object.entries(SKILLS).map(([cat, items], i) => <Reveal key={cat} delay={i * 0.07}><div className={`p-7 rounded-2xl ${cBg} border ${cBd} card-hover h-full flex flex-col`}>
-              <h3 className="text-sm font-mono font-semibold mb-5 tracking-wide" style={{ color: '#DC2626' }}>{cat}</h3>
-              <div className="flex flex-wrap gap-2 flex-1 content-start">{items.map(s => <span key={s} className={`px-3.5 py-2 rounded-xl text-[14px] font-medium ${dark ? 'bg-white/[0.05]' : 'bg-black/[0.04]'} ${su} self-start`}>{s}</span>)}</div>
             </div></Reveal>)}
           </div>
         </div>
@@ -456,7 +640,8 @@ export default function App() {
           <Reveal>
             <Label t="Contact" />
             <H2 className="mb-4">Let's connect.</H2>
-            <Body className={`${su} mb-12`}>Got a question, opportunity, or just want to say hello? Drop a message.</Body>
+            <Body className={`${su} mb-3`}>Got a question, opportunity, or just want to say hello? Drop a message.</Body>
+            <p className={`text-sm ${mu} mb-12`}>Dayton, OH &middot; open to relocation</p>
           </Reveal>
           <Reveal delay={0.15}>
             <form action="https://formspree.io/f/xqedbdpw" method="POST" className="flex flex-col gap-5 text-left">
@@ -476,8 +661,8 @@ export default function App() {
               <div className={`h-px flex-1 max-w-[60px] ${dark ? 'bg-white/[0.08]' : 'bg-black/[0.08]'}`} />
             </div>
             <div className="flex items-center justify-center gap-4 flex-wrap">
-              <a href="https://linkedin.com/in/roycarlous" target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2.5 px-5 py-3 rounded-full border ${cBd} ${su} text-sm font-medium no-underline font-sans transition-all hover:-translate-y-0.5 hover:text-[#DC2626]`} style={{ background: 'transparent' }}><Ic.LinkedIn s={18} /> LinkedIn</a>
-              <a href="mailto:roycarlous@gmail.com" className={`flex items-center gap-2.5 px-5 py-3 rounded-full border ${cBd} ${su} text-sm font-medium no-underline font-sans transition-all hover:-translate-y-0.5 hover:text-[#DC2626]`} style={{ background: 'transparent' }}><Ic.Mail s={18} /> Email</a>
+              <a href="https://linkedin.com/in/roy-carlous-c" target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2.5 px-5 py-3 rounded-full border ${cBd} ${su} text-sm font-medium no-underline font-sans transition-all hover:-translate-y-0.5 hover:text-[#DC2626]`} style={{ background: 'transparent' }}><Ic.LinkedIn s={18} /> LinkedIn</a>
+              <a href="mailto:roy4edu@gmail.com" className={`flex items-center gap-2.5 px-5 py-3 rounded-full border ${cBd} ${su} text-sm font-medium no-underline font-sans transition-all hover:-translate-y-0.5 hover:text-[#DC2626]`} style={{ background: 'transparent' }}><Ic.Mail s={18} /> Email</a>
               <a href="tel:+13264671939" className={`flex items-center gap-2.5 px-5 py-3 rounded-full border ${cBd} ${su} text-sm font-medium no-underline font-sans transition-all hover:-translate-y-0.5 hover:text-[#DC2626]`} style={{ background: 'transparent' }}><Ic.Phone s={18} /> Call</a>
             </div>
           </Reveal>
