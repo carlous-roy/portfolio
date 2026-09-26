@@ -15,6 +15,13 @@ export default [
   },
   react.configs.flat['jsx-runtime'],
   jsxA11y.flatConfigs.recommended,
+  {
+    rules: {
+      // Safari removes list semantics from a <ul> styled with list-style: none,
+      // so an explicit role="list" is deliberate there.
+      'jsx-a11y/no-redundant-roles': ['error', { ul: ['list'] }],
+    },
+  },
   reactHooks.configs.flat.recommended,
   {
     files: ['src/**/*.{js,jsx}'],

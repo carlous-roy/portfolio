@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -9,24 +9,62 @@
 
     <!-- SEO -->
     <title>Roy Carlous | AI Software Engineer</title>
-    <meta name="description" content="Roy Carlous Christudass. AI Software Engineer working on machine learning, data and backend systems, built end to end. MS Computer Science, Wright State University. Four systems live and publicly reachable." />
+    <meta
+      name="description"
+      content="Roy Carlous Christudass. AI Software Engineer working on machine learning, data and backend systems, built end to end. MS Computer Science, Wright State University. Four systems live and publicly reachable."
+    />
     <meta name="author" content="Roy Carlous Christudass" />
     <meta name="theme-color" content="#08080c" />
-    <style>html,body{background:#08080c;margin:0}</style>
+    <meta name="color-scheme" content="light dark" />
+    <!-- Apply a remembered theme before first paint; otherwise follow the OS. -->
+    <script>
+      ;(function () {
+        try {
+          var stored = localStorage.getItem('theme')
+          var pinned = stored === 'dark' || stored === 'light'
+          var theme = pinned
+            ? stored
+            : matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light'
+          document.documentElement.setAttribute('data-theme', theme)
+          if (pinned) document.querySelector('meta[name="color-scheme"]').content = theme
+          document.querySelector('meta[name="theme-color"]').content =
+            theme === 'dark' ? '#08080c' : '#f8f7f4'
+        } catch (e) {}
+      })()
+    </script>
+    <style>
+      html[data-theme='dark'] {
+        background: #08080c;
+      }
+      html[data-theme='light'] {
+        background: #f8f7f4;
+      }
+      body {
+        margin: 0;
+      }
+    </style>
 
     <!-- Open Graph -->
     <meta property="og:title" content="Roy Carlous | AI Software Engineer" />
-    <meta property="og:description" content="Machine learning, data and backend systems, built end to end. Predictive maintenance on machine telemetry, ML-powered code review, distributed job processing, and real-time computer vision. All four are live." />
+    <meta
+      property="og:description"
+      content="Machine learning, data and backend systems, built end to end. Predictive maintenance on machine telemetry, ML-powered code review, distributed job processing, and real-time computer vision. All four are live."
+    />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://roycarlous.com" />
     <meta property="og:image" content="https://roycarlous.com/roy-default.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Roy Carlous | AI Software Engineer" />
-    <meta name="twitter:description" content="Machine learning, data and backend systems, built end to end. Four systems live and publicly reachable." />
+    <meta
+      name="twitter:description"
+      content="Machine learning, data and backend systems, built end to end. Four systems live and publicly reachable."
+    />
     <meta name="twitter:image" content="https://roycarlous.com/roy-default.jpg" />
     <link rel="canonical" href="https://roycarlous.com" />
   </head>
-  <body style="background:#08080c">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
