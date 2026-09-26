@@ -1,66 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { RCLogoCompact } from './IntroAnimation'
+import {
+  buildRequestMessages,
+  conversationKey,
+  createCache,
+  createThrottle,
+  sendChat,
+  messageForError,
+} from '../lib/chat'
 
-// Gemini API. One key is enough; a second is optional and only adds failover.
 // The model call goes through /api/chat, a serverless function that holds the
-// API key server-side. Nothing secret reaches this bundle.
-const CHAT_ENDPOINT = '/api/chat'
-const CONTACT_EMAIL = 'roy4edu@gmail.com'
-let requestTimestamps = [], responseCache = new Map()
-
-function isRateLimited() {
-  const now = Date.now()
-  requestTimestamps = requestTimestamps.filter(t => now - t < 300000) // 5 min window
-  return requestTimestamps.length >= 15
-}
-
-// Chatbot persona — this is the knowledge base, keep it dense
-const SYSTEM_PROMPT = `You are the AI assistant on Roy Carlous Christudass's portfolio site (roycarlous.com). Speak in THIRD PERSON about Roy. You are NOT Roy. Be warm, direct and conversational. No emojis. No filler openers like "Great question!". Keep answers to 2 to 5 sentences. Prefer a specific detail over a general claim. If you do not know something, say so and point to Roy directly.
-
-WHO HE IS. Roy Carlous Christudass, a software engineer working on AI and data systems. From Chennai, India, based in Dayton, Ohio, open to relocation. MS in Computer Science, Wright State University, completed August 2026. BE in Electronics and Communication Engineering, Sathyabama Institute, Chennai. Graduate coursework: Foundations of AI, Information Retrieval, Algorithm Design and Analysis, Distributed Computing, Advanced Computer Networks, Reverse Engineering and Program Analysis. Most of what he builds ends up the same shape: data coming in, a model or some logic over it, an API in the middle, and a front end someone actually uses, and he works across all of that rather than owning one layer. He is actively looking for internship or full-time roles.
-
-WORK. HCLTech, contracted to Teradyne, Jan 2022 to Aug 2024, Chennai. Graduate Engineer Trainee, then Software Engineer, then Senior Software Engineer. Promoted twice in under three years.
-- Owned C++ and C#/.NET instrument driver development for Teradyne's IG-XL automated test platform, running on UltraFLEX and UltraFLEXplus testers in semiconductor fabs, where a driver defect stops a production line.
-- Was the sole escalation point for critical stopper issues affecting Teradyne's end customers, and built the Power BI dashboards that tracked issue trends across both tester platforms. Scattered escalation records became a view of where defects clustered by platform, module and instrument, which cut mean time to resolution on the recurring classes.
-- Cut root-cause time on memory leaks and performance regressions by moving legacy diagnostic workflows onto an AI-assisted debugging framework using WinDbg, JetBrains Timeline Profiler and automated flagging of regressions between builds.
-- Worked across teams migrating the IG.NET framework from C++ to a modern C#/.NET architecture, triaging the defect backlog across ported modules and profiling runtime performance against the original build. Zero production stoppers on the releases he managed.
-- Triaged and resolved 150+ defects across three analog driver codebases (DC30, DC70, DC75), shipped new language nodes extending automated test coverage to next-generation hardware, and built and repaired the test suites behind all three. Source control through VersionVault, tracking through JIRA.
-
-PROJECTS. All four are real and reachable.
-- DiffLens, demo at difflens.roycarlous.com, code at github.com/carlous-roy/DiffLens-Engine. A code review engine. Tree-sitter parses Python and Java into ASTs to measure cyclomatic complexity and nesting depth, a weighted risk model scores pull requests from those features alongside finding severity and diff size, keyword rules sort findings into five classes, and TF-IDF similarity surfaces issues the codebase has seen before. A local LLM pass (Ollama, CodeLlama) turns findings into review comments, and GitHub webhooks make every pull request analyze itself and post inline. Four-container Docker Compose stack, 14-file pytest suite. Python, FastAPI, scikit-learn, PostgreSQL, React, Docker.
-- TaskForge, demo at taskforge.roycarlous.com, code at github.com/carlous-roy/TaskForge-Engine. A distributed job-processing system. A REST API enqueues to SQS, independent workers process and deliver to S3 behind presigned URLs, and a React dashboard polls live job state and queue depth. Engineered for failure rather than the happy path: exponential backoff with 20 percent jitter, a dead-letter queue after three attempts, idempotency keys returning 409, SIGTERM graceful drain, and correlation IDs through every hop so any failed job stays traceable. Java 17, Spring Boot, AWS SQS/DynamoDB/S3, Docker, LocalStack, React.
-- GestureControl, demo at gesture.roycarlous.com, code at github.com/carlous-roy/GestureControl-Engine. A 30 FPS vision-to-actuator control loop. MediaPipe runs two models per frame, an SSD palm detector then direct regression of 21 3D hand landmarks, and a geometric classifier on top reads finger state by comparing each fingertip against its PIP joint, with a separate rule for the thumb because it moves laterally rather than vertically. A 15px jitter threshold and a 3-frame stabilization window suppress false triggers before anything reaches the relays. Drives a 4-channel relay module over PyFirmata serial to an Arduino UNO, and a simulation mode runs the whole loop with no board attached. Started as his BE final-year project in 2022 and was rebuilt in 2026 to modern engineering standards.
-- CodeAtlas, case study at roycarlous.com/case-studies/codeatlas.html, code at github.com/carlous-roy/CodeAtlas. Semantic search over a codebase plus an evaluation harness that measures how well it works. He indexed 152 files and about 11,000 lines across his own four projects, wrote 36 questions with the answering files labelled, and scored four retrieval strategies against three chunking strategies on the same set. Best configuration: Tree-sitter chunking on declaration boundaries, hybrid BM25 and embedding retrieval fused with Reciprocal Rank Fusion, and a per-file cap on results. Recall@5 0.86, MRR 0.591. Two results worth mentioning because they went against expectation: structural chunking initially LOST to a naive fixed-window baseline, and the reason was that the experiment moved chunk size and chunk boundaries at the same time. After merging small chunks so sizes matched, structural chunking won on ranking, recall@1 0.42 against 0.31, while recall@5 tied. And a standard MS MARCO cross-encoder reranker made results worse, lowering MRR, because it is trained on natural-language web passages and code is out of distribution for it. He also diagnosed the remaining failures instead of tuning past them: documentation filled 46 percent of the top 5 on misses against 29 percent on hits, so capping how many chunks one file can contribute lifted recall@3 from 0.67 to 0.78 in about ten lines. Python, sentence-transformers, Tree-sitter, BM25, NumPy.
-- This site: React 18, Vite, Tailwind, and this assistant on Gemini with context-aware prompt injection and client-side rate limiting.
-
-SKILLS. Python, Java, C++, C#/.NET, JavaScript, SQL. scikit-learn, TF-IDF, embedding search, BM25 and hybrid retrieval, retrieval evaluation, LLM integration (Ollama, CodeLlama, Gemini), OpenCV, MediaPipe, Tree-sitter. Spring Boot, FastAPI, REST API design, message queues, fault tolerance. React 18, Vite, Tailwind. AWS (SQS, S3, DynamoDB), Docker, LocalStack, Vercel. PostgreSQL, MySQL, DynamoDB. Power BI dashboards, ETL, embeddings and vector search, hybrid retrieval, retrieval evaluation. WinDbg, JetBrains profilers, pytest, JUnit, Git.
-
-INTERESTS. Photography on a Sony A7 V, and the profile photos on this site are his own. Cricket (Sachin Tendulkar), football (Ronaldo), UFC, Formula 1, cinema (Nolan, Villeneuve, Tamil cinema, Vijay), music (A. R. Rahman, The Weeknd, Linkin Park, Hans Zimmer).
-
-CONTACT. ${CONTACT_EMAIL} | linkedin.com/in/roy-carlous-c | github.com/carlous-roy | +1 (326) 467-1939
-
-EDGE CASES. Religion, politics or anything personal: "That's personal to Roy. Happy to talk about his work." Salary or compensation: "Best discussed with Roy directly." Work authorization or visa: "That's best discussed with Roy directly." Anything you do not know: say so plainly and point to his email.`
-
-// Extra context injected based on what the user asks about
-const CTX = {
-  work: 'HCLTech contracted to Teradyne, Jan 2022 to Aug 2024. Trainee to SE to Senior SWE, promoted twice. C++/C#/.NET instrument drivers for IG-XL on UltraFLEX and UltraFLEXplus. Sole escalation point for critical stopper issues, built the Power BI dashboards tracking issue trends across both platforms. Moved diagnostic workflows onto an AI-assisted debugging framework (WinDbg, JetBrains Timeline Profiler). Worked on the IG.NET C++ to C# migration with zero production stoppers on releases he managed. 150+ defects across DC30/DC70/DC75.',
-  education: 'MS Computer Science, Wright State University, completed August 2026. Coursework: Foundations of AI, Information Retrieval, Algorithm Design and Analysis, Distributed Computing, Advanced Computer Networks, Reverse Engineering and Program Analysis. BE in Electronics and Communication Engineering, Sathyabama, Chennai, 2018 to 2022.',
-  projects: 'DiffLens (live): code review, Tree-sitter ASTs plus weighted risk scoring plus GitHub webhooks. TaskForge (live): distributed job processing, REST to SQS to workers to S3, backoff with jitter, DLQ, idempotency, correlation IDs. GestureControl (live): 30 FPS vision-to-actuator loop, MediaPipe SSD palm detector plus 21-point landmark regression driving Arduino relays. CodeAtlas (case study): semantic code search plus a retrieval evaluation harness, 36 labelled questions, recall@5 0.86 and MRR 0.591, with the negative results reported too.',
-  skills: 'Python, Java, C++, C#/.NET, JavaScript, SQL. scikit-learn, TF-IDF, OpenCV, MediaPipe, Tree-sitter, LLM integration. Spring Boot, FastAPI, React, Vite, Tailwind. AWS SQS/S3/DynamoDB, Docker, Vercel. PostgreSQL, MySQL. Power BI dashboards, ETL, embeddings and vector search, BM25 and hybrid retrieval, retrieval evaluation. WinDbg, JetBrains profilers, pytest, JUnit, Git.',
-  hobbies: 'Photography on a Sony A7 V. Cricket, Formula 1, UFC, cinema (Nolan, Villeneuve, Tamil cinema), music (A. R. Rahman, The Weeknd, Linkin Park, Hans Zimmer).',
-  contact: `${CONTACT_EMAIL}, linkedin.com/in/roy-carlous-c, github.com/carlous-roy, +1 (326) 467-1939. Based in Dayton, Ohio, open to relocation.`,
-}
-
-function getCtx(q) {
-  const l = q.toLowerCase(), matched = []
-  if (/work|job|hcl|teradyne|experience|career|escalation|dashboard|driver/.test(l)) matched.push(CTX.work)
-  if (/educat|school|university|wright|degree/.test(l)) matched.push(CTX.education)
-  if (/project|taskforge|difflens|gesture|codeatlas|retrieval|rag|search|embedding|power ?bi|arduino|opencv|built|github/.test(l)) matched.push(CTX.projects)
-  if (/skill|tech|stack|language|java|python|sql|react|aws|docker/.test(l)) matched.push(CTX.skills)
-  if (/hobb|interest|cricket|music|photo|movie|sport/.test(l)) matched.push(CTX.hobbies)
-  if (/contact|email|reach|connect|linkedin|hire/.test(l)) matched.push(CTX.contact)
-  return matched.length ? '\n\nContext:\n' + matched.join('\n') : ''
-}
+// API key and the system prompt. The browser sends only the conversation.
+// Both of these live for the page: the throttle is a courtesy stop before the
+// server's own limit, and the cache is keyed on the whole conversation.
+const throttle = createThrottle({ windowMs: 5 * 60 * 1000, max: 15 })
+const cache = createCache(50)
 
 const SUGGESTIONS = [
   { label: 'Experience', q: "Tell me about Roy's work experience" },
@@ -106,64 +60,42 @@ export default function AIChatbot({ dark, messages, setMessages, onClose }) {
   const handleClose = () => { setClosing(true); setTimeout(() => { setClosing(false); onClose() }, 200) }
   useEffect(() => { const h = e => e.key === 'Escape' && handleClose(); window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h) }, [])
 
-  const send = useCallback(async (msg) => {
-    if (!msg.trim() || loading) return
-    setInput('')
-    setMessages(p => [...p, { role: 'user', content: msg.trim() }])
-    setLoading(true)
+  const send = useCallback(
+    async (msg) => {
+      const text = msg.trim()
+      if (!text || loading) return
+      setInput('')
+      setMessages((p) => [...p, { role: 'user', content: text }])
+      setLoading(true)
 
-    const fail = (text) => { setMessages(p => [...p, { role: 'assistant', content: text }]); setLoading(false) }
-
-    if (isRateLimited()) return fail(`You've been chatting a lot! Reach Roy directly at ${CONTACT_EMAIL}`)
-    const ck = msg.toLowerCase().trim()
-    if (responseCache.has(ck)) return fail(responseCache.get(ck))
-
-    const callAPI = async () => {
-      const r = await fetch(CHAT_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: SYSTEM_PROMPT + getCtx(msg),
-          contents: [
-            ...messages
-              .filter(m => m.role !== 'system')
-              .map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
-            { role: 'user', parts: [{ text: msg }] },
-          ],
-        }),
-      })
-      if (!r.ok) {
-        let detail = ''
-        try { detail = (await r.json())?.error || '' } catch {}
-        const err = new Error(`HTTP ${r.status}${detail ? ` \u2014 ${detail}` : ''}`)
-        err.status = r.status
-        throw err
+      const finish = (content, error = false) => {
+        setMessages((p) => [...p, { role: 'assistant', content, error }])
+        setLoading(false)
       }
-      return r.json()
-    }
 
-    try {
-      requestTimestamps.push(Date.now())
-      const d = await callAPI()
-      const reply = d?.candidates?.[0]?.content?.parts?.[0]?.text
-      if (!reply) throw new Error('Empty completion')
-      responseCache.set(ck, reply)
-      setMessages(p => [...p, { role: 'assistant', content: reply }])
-    } catch (e) {
-      // Log the real error type and message. A bare catch here once hid a model
-      // that had been retired, because every failure looked identical.
-      console.error('[chatbot]', e.status ? `status ${e.status}:` : '', e.message)
-      fail(
-        e.status === 429
-          ? `That's a lot of questions! Give it a minute, or reach Roy at ${CONTACT_EMAIL}`
-          : `The assistant is unavailable right now. Reach Roy at ${CONTACT_EMAIL}`
-      )
-    }
-    setLoading(false)
-  }, [input, loading, messages, setMessages])
+      if (!throttle.allow()) return finish(messageForError('rate_limited'), true)
+
+      const request = buildRequestMessages(messages, text)
+      const key = conversationKey(request)
+      const cached = cache.get(key)
+      if (cached) return finish(cached)
+
+      try {
+        const reply = await sendChat(request)
+        cache.set(key, reply)
+        finish(reply)
+      } catch (e) {
+        // Log the real error type and message. A bare catch here once hid a model
+        // that had been retired, because every failure looked identical.
+        console.error('[chatbot]', e.code || e.name, e.status ? `status ${e.status}` : '', e.message)
+        finish(messageForError(e.code), true)
+      }
+    },
+    [loading, messages, setMessages]
+  )
 
   const handleSend = () => send(input)
-  const lastAi = [...messages].reverse().find(m => m.role === 'assistant')
+  const lastAi = [...messages].reverse().find(m => m.role === 'assistant' && !m.error)
   const followups = lastAi ? getFollowups(lastAi.content) : []
 
   const t = dark
@@ -205,7 +137,7 @@ export default function AIChatbot({ dark, messages, setMessages, onClose }) {
             <div className="flex flex-col gap-3 flex-1">
               {messages.map((m, i) => (
                 <div key={i} className={`max-w-[85%] px-4 py-3 text-[15px] leading-relaxed ${m.role === 'user' ? 'self-end rounded-2xl rounded-br-sm' : 'self-start rounded-2xl rounded-bl-sm'}`}
-                  style={{ background: m.role === 'user' ? t.msgUser : t.msgAi, color: t.text }}>{m.content}</div>
+                  style={{ background: m.role === 'user' ? t.msgUser : t.msgAi, color: t.text, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{m.content}</div>
               ))}
               {loading && <div className="self-start px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1" style={{ background: t.msgAi, color: t.sub }}><span style={{ animation: 'dotPulse 1.4s infinite 0s' }}>●</span><span style={{ animation: 'dotPulse 1.4s infinite 0.2s' }}>●</span><span style={{ animation: 'dotPulse 1.4s infinite 0.4s' }}>●</span></div>}
               {!loading && followups.length > 0 && (
