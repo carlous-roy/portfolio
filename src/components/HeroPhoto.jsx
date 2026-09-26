@@ -114,7 +114,7 @@ export default function HeroPhoto() {
             aria-label={item.label}
             target={item.external ? '_blank' : undefined}
             rel={item.external ? 'noopener noreferrer' : undefined}
-            className="social-icon absolute rounded-full flex items-center justify-center text-mu hover:text-accent-text transition-all hover:scale-110 social-icon-pop"
+            className="social-icon absolute rounded-full flex items-center justify-center text-mu hover:text-accent-text transition-[color,transform] hover:scale-110 social-icon-pop"
             style={{
               width: btnSize,
               height: btnSize,
