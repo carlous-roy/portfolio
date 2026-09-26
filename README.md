@@ -65,7 +65,9 @@ npm run dev               # http://localhost:5173, /api/chat included
 needed. Without a key the route answers `503` and the dialog says the assistant is not set up.
 Restart the dev server after editing files under `api/`.
 
-Other scripts: `npm run lint`, `npm run format`, `npm test`, `npm run build`, `npm run preview`.
+Other scripts: `npm run lint`, `npm run format`, `npm test`, `npm run build`. `npm run preview`
+serves the build with the response headers from `vercel.json`, so the Content-Security-Policy can
+be checked locally before a deploy.
 
 ### Environment variables
 

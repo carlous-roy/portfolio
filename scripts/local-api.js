@@ -3,6 +3,7 @@
 // the Vercel CLI. It mimics the small part of Vercel's Node request/response
 // surface the handler uses: a parsed `req.body`, `res.status()`, `res.json()` and
 // `res.setHeader()`.
+import { readFileSync } from 'node:fs'
 import { loadEnv } from 'vite'
 
 const ROUTE = '/api/chat'
@@ -79,11 +80,38 @@ async function handle(req, res, next) {
   await handler(req, wrapResponse(res))
 }
 
+// The preview server also applies the response headers from vercel.json, so
+// the Content-Security-Policy can be checked against the built site locally.
+// Vercel matches `source` with path-to-regexp; the patterns used here are plain
+// enough to be read as regular expressions directly.
+function vercelHeaders(root) {
+  let rules = []
+  try {
+    const json = JSON.parse(readFileSync(`${root}/vercel.json`, 'utf8'))
+    rules = (json.headers || []).map((h) => ({
+      test: new RegExp(`^${h.source.replace(/\(\.\*\)/g, '(.*)')}$`),
+      headers: h.headers,
+    }))
+  } catch {
+    rules = []
+  }
+  return (req, res, next) => {
+    const path = (req.url || '/').split('?')[0]
+    for (const rule of rules) {
+      if (!rule.test.test(path)) continue
+      for (const { key, value } of rule.headers) res.setHeader(key, value)
+    }
+    next()
+  }
+}
+
 export function localApi() {
   let env = {}
+  let root = process.cwd()
   return {
     name: 'local-api',
     configResolved(config) {
+      root = config.root
       env = loadEnv(config.mode, config.root, '')
       for (const [key, value] of Object.entries(env)) {
         if (!(key in process.env)) process.env[key] = value
@@ -93,6 +121,7 @@ export function localApi() {
       server.middlewares.use(handle)
     },
     configurePreviewServer(server) {
+      server.middlewares.use(vercelHeaders(root))
       server.middlewares.use(handle)
     },
   }
