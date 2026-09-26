@@ -17,6 +17,9 @@ dist/
 .env.*.local
 .env.production
 
+# Vercel CLI project link
+.vercel/
+
 # ─────────────────────────────────────────────
 # Editor & OS files
 # ─────────────────────────────────────────────

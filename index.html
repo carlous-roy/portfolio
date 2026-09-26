@@ -4,14 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
-    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/png" href="/favicon.png" />
 
-    <!-- SEO -->
     <title>Roy Carlous | AI Software Engineer</title>
     <meta
       name="description"
-      content="Roy Carlous Christudass. AI Software Engineer working on machine learning, data and backend systems, built end to end. MS Computer Science, Wright State University. Four systems live and publicly reachable."
+      content="Roy Carlous Christudass, AI Software Engineer. Machine learning, data and backend systems, built end to end. MS Computer Science, Wright State University. Three browser demos and a published case study."
     />
     <meta name="author" content="Roy Carlous Christudass" />
     <meta name="theme-color" content="#08080c" />
@@ -44,28 +43,121 @@
       body {
         margin: 0;
       }
+      .noscript-main {
+        max-width: 640px;
+        margin: 3rem auto;
+        padding: 0 1rem;
+        font-family: system-ui, sans-serif;
+        line-height: 1.6;
+      }
     </style>
 
-    <!-- Open Graph -->
+    <link rel="canonical" href="https://roycarlous.com/" />
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Roy Carlous" />
     <meta property="og:title" content="Roy Carlous | AI Software Engineer" />
     <meta
       property="og:description"
-      content="Machine learning, data and backend systems, built end to end. Predictive maintenance on machine telemetry, ML-powered code review, distributed job processing, and real-time computer vision. All four are live."
+      content="Machine learning, data and backend systems, built end to end. Code review, distributed job processing and computer vision as browser demos, plus a published retrieval evaluation."
     />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://roycarlous.com" />
-    <meta property="og:image" content="https://roycarlous.com/roy-default.jpg" />
+    <meta property="og:url" content="https://roycarlous.com/" />
+    <meta property="og:image" content="https://roycarlous.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Roy Carlous Christudass, AI Software Engineer, roycarlous.com"
+    />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Roy Carlous | AI Software Engineer" />
     <meta
       name="twitter:description"
-      content="Machine learning, data and backend systems, built end to end. Four systems live and publicly reachable."
+      content="Machine learning, data and backend systems, built end to end. Three browser demos and a published case study."
     />
-    <meta name="twitter:image" content="https://roycarlous.com/roy-default.jpg" />
-    <link rel="canonical" href="https://roycarlous.com" />
+    <meta name="twitter:image" content="https://roycarlous.com/og-image.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Roy Carlous Christudass",
+        "givenName": "Roy Carlous",
+        "familyName": "Christudass",
+        "url": "https://roycarlous.com/",
+        "image": "https://roycarlous.com/roy-default.jpg",
+        "jobTitle": "AI Software Engineer",
+        "sameAs": ["https://github.com/carlous-roy", "https://linkedin.com/in/roy-carlous-c"],
+        "alumniOf": [
+          { "@type": "CollegeOrUniversity", "name": "Wright State University" },
+          {
+            "@type": "CollegeOrUniversity",
+            "name": "Sathyabama Institute of Science and Technology"
+          }
+        ],
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Dayton",
+          "addressRegion": "OH",
+          "addressCountry": "US"
+        },
+        "knowsAbout": [
+          "Machine learning",
+          "Information retrieval",
+          "Distributed systems",
+          "Python",
+          "Java",
+          "C++",
+          "C#/.NET"
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <main class="noscript-main">
+        <h1>Roy Carlous Christudass</h1>
+        <p>AI Software Engineer. Machine learning, data and backend systems, built end to end.</p>
+        <p>
+          MS in Computer Science, Wright State University (2024 to 2026). BE in Electronics and
+          Communication Engineering, Sathyabama Institute of Science and Technology. Previously
+          nearly three years at HCLTech, contracted to Teradyne, writing C++ and C#/.NET instrument
+          drivers for semiconductor test equipment.
+        </p>
+        <h2>Projects</h2>
+        <ul>
+          <li>
+            DiffLens, a code review engine:
+            <a href="https://github.com/carlous-roy/DiffLens-Engine">code</a>,
+            <a href="https://difflens.roycarlous.com">browser demo</a>
+          </li>
+          <li>
+            TaskForge, a distributed report generation system:
+            <a href="https://github.com/carlous-roy/TaskForge-Engine">code</a>,
+            <a href="https://taskforge.roycarlous.com">browser demo</a>
+          </li>
+          <li>
+            GestureControl, hand gestures to hardware relays:
+            <a href="https://github.com/carlous-roy/GestureControl-Engine">code</a>,
+            <a href="https://gesture.roycarlous.com">browser demo</a>
+          </li>
+          <li>
+            CodeAtlas, semantic code search with a published retrieval evaluation:
+            <a href="https://github.com/carlous-roy/CodeAtlas">code</a>,
+            <a href="/case-studies/codeatlas.html">case study</a>
+          </li>
+        </ul>
+        <p>
+          <a href="/Roy_Resume.pdf">Resume (PDF)</a> ·
+          <a href="https://github.com/carlous-roy">GitHub</a> ·
+          <a href="https://linkedin.com/in/roy-carlous-c">LinkedIn</a> ·
+          <a href="mailto:roy4edu@gmail.com">roy4edu@gmail.com</a>
+        </p>
+        <p>This site needs JavaScript for the full version, including the assistant.</p>
+      </main>
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
