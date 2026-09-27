@@ -211,7 +211,7 @@ describe('handler: upstream call', () => {
     expect(init.headers['x-goog-api-key']).toBe('key-one')
     expect(init.signal).toBeInstanceOf(AbortSignal)
     const sent = JSON.parse(init.body)
-    expect(sent.system_instruction.parts[0].text).toContain('You are the AI assistant')
+    expect(sent.system_instruction.parts[0].text).toContain('You are the assistant on Roy')
     expect(sent.system_instruction.parts[0].text).toContain('Context:')
     expect(sent.contents).toEqual([
       { role: 'user', parts: [{ text: 'Hi' }] },
