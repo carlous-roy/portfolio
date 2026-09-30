@@ -48,7 +48,7 @@ src/
 └── styles/index.css # Theme tokens, focus styles, reduced-motion rules, keyframes
 scripts/
 ├── local-api.js     # Vite plugin that mounts api/chat.js on the dev and preview servers
-└── csp.test.js      # Keeps the CSP hashes in vercel.json in step with index.html
+└── csp.test.js      # Keeps the CSP in vercel.json in step with index.html and the case study
 public/              # Photos, resume, skill icons, case study, robots.txt, sitemap.xml
 vercel.json          # Redirect www to apex, security headers, cache headers
 ```
@@ -85,7 +85,7 @@ never appear in the build.
 1. Import the repository at [vercel.com/new](https://vercel.com/new). Framework: Vite, build
    `npm run build`, output `dist`.
 2. Add `GEMINI_API_KEY` (and optionally `GEMINI_API_KEY_2`) under Settings → Environment Variables
-   for Production, then redeploy. Use a key that was never exposed through a `VITE_` variable.
+   for Production, then redeploy. Use a key that has never been in a client bundle.
 3. Domains: `roycarlous.com` is the canonical host. In Settings → Domains make the apex the
    production domain and let `www.roycarlous.com` redirect to it. `vercel.json` also carries a
    permanent redirect from www to apex; if the dashboard still redirects apex to www the two will
