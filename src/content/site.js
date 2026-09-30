@@ -9,8 +9,6 @@ export const SITE_URL = 'https://roycarlous.com'
 
 export const CONTACT = {
   email: 'roy4edu@gmail.com',
-  phone: '+13264671939',
-  phoneDisplay: '+1 (326) 467-1939',
   github: 'https://github.com/carlous-roy',
   linkedin: 'https://linkedin.com/in/roy-carlous-c',
   location: 'Dayton, OH',

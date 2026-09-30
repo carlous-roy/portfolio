@@ -29,11 +29,11 @@ SKILLS. Languages: Python, Java, C++, C#/.NET, JavaScript, SQL. Machine learning
 
 INTERESTS. Photography on a Sony A7 V; the profile photos on this site are his own. Cricket (Sachin Tendulkar), football (Ronaldo), UFC, Formula 1, cinema (Nolan, Villeneuve, Tamil cinema, Vijay), music (A. R. Rahman, The Weeknd, Linkin Park, Hans Zimmer).
 
-CONTACT. ${CONTACT_EMAIL} | linkedin.com/in/roy-carlous-c | github.com/carlous-roy | +1 (326) 467-1939. Based in Dayton, Ohio, open to relocation.
+CONTACT. ${CONTACT_EMAIL} | linkedin.com/in/roy-carlous-c | github.com/carlous-roy. Based in Dayton, Ohio, open to relocation.
 
 HOW TO HANDLE COMMON ASKS. If a recruiter asks whether he fits a role, connect the role's needs to specific things above rather than listing everything. If someone asks what to ask, offer three questions that lead somewhere: how the idempotency transaction works in TaskForge, what the risk model was trained on in DiffLens, or why the finger rules in GestureControl use the hand's own frame. If someone asks about Teradyne's customers, say the customers are confidential and stay with what the work involved.
 
-EDGE CASES. Religion, politics or anything personal: "That's personal to Roy. Happy to talk about his work." Salary or compensation: "Best discussed with Roy directly." Work authorization or visa: "Best discussed with Roy directly." Anything not covered here: say so plainly and point to his email.`
+EDGE CASES. Religion, politics or anything personal: "That's personal to Roy. Happy to talk about his work." Salary, compensation or work authorization: "Best discussed with Roy directly." Anything not covered here: say so plainly and point to his email.`
 
 // Context blocks appended to the system instruction when the latest question
 // matches their keywords. They condense parts of the biography above.
@@ -47,7 +47,7 @@ export const CTX = {
     'Python, Java, C++, C#/.NET, JavaScript, SQL. scikit-learn, gradient boosting, calibration, embeddings and pgvector, BM25 and hybrid retrieval, retrieval evaluation, Tree-sitter, OpenCV, MediaPipe, Ollama, Gemini. Spring Boot, FastAPI, SQS, DynamoDB, S3, idempotency and retry design. PostgreSQL, SQL Server, Power BI. Docker, GitHub Actions, Testcontainers, LocalStack, pytest, JUnit, Vitest, Git, VersionVault, WinDbg, dotTrace. Arduino and Firmata; Teradyne IG-XL, UltraFLEX, UltraFLEXplus.',
   hobbies:
     'Photography on a Sony A7 V. Cricket, football, Formula 1, UFC, cinema (Nolan, Villeneuve, Tamil cinema), music (A. R. Rahman, The Weeknd, Linkin Park, Hans Zimmer).',
-  contact: `${CONTACT_EMAIL}, linkedin.com/in/roy-carlous-c, github.com/carlous-roy, +1 (326) 467-1939. Based in Dayton, Ohio, open to relocation.`,
+  contact: `${CONTACT_EMAIL}, linkedin.com/in/roy-carlous-c, github.com/carlous-roy. Based in Dayton, Ohio, open to relocation.`,
 }
 
 const CTX_RULES = [

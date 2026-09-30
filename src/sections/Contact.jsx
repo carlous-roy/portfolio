@@ -1,6 +1,6 @@
 import Reveal from '../components/Reveal'
 import { Body, H2, Label } from '../components/Primitives'
-import { LinkedIn, Mail, Phone } from '../icons'
+import { LinkedIn, Mail } from '../icons'
 import { CONTACT } from '../content/site'
 
 const FIELD =
@@ -117,14 +117,6 @@ export default function Contact() {
                 className="pill-link flex items-center gap-2.5 px-5 py-3 rounded-full border border-edge text-su text-sm font-medium no-underline transition-transform hover:-translate-y-0.5 hover:text-accent-text"
               >
                 <Mail size={18} /> Email
-              </a>
-            </li>
-            <li>
-              <a
-                href={`tel:${CONTACT.phone}`}
-                className="pill-link flex items-center gap-2.5 px-5 py-3 rounded-full border border-edge text-su text-sm font-medium no-underline transition-transform hover:-translate-y-0.5 hover:text-accent-text"
-              >
-                <Phone size={18} /> Call
               </a>
             </li>
           </ul>

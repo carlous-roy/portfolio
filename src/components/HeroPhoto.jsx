@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { CONTACT, NAME, PHOTOS } from '../content/site'
-import { Github, LinkedIn, Mail, Phone } from '../icons'
+import { Github, LinkedIn, Mail } from '../icons'
 import { useReducedMotion } from '../hooks/useReducedMotion'
 
 const INTERVAL_MS = 5000
 
-// Profile photo with four contact links around it. The first photo loads
+// Profile photo with three contact links around it. The first photo loads
 // eagerly with a high fetch priority (it is the largest thing above the fold);
 // the other two are lazy and low priority until they are shown. The photo
 // cycles every five seconds unless the OS asks for reduced motion; hovering
@@ -55,13 +55,8 @@ export default function HeroPhoto() {
       label: `Email ${CONTACT.email}`,
       icon: <Mail size={iconSize} />,
     },
-    {
-      href: `tel:${CONTACT.phone}`,
-      label: `Call ${CONTACT.phoneDisplay}`,
-      icon: <Phone size={iconSize} />,
-    },
   ]
-  const angles = [202, 226, 250, 274]
+  const angles = [214, 238, 262]
   const radius = isMobile ? 62 : 66
   const btnSize = isMobile ? 40 : 48
   const size = isMobile ? '160px' : 'clamp(260px, 26vw, 350px)'
