@@ -76,7 +76,8 @@ export default function Contact() {
                 className={`${FIELD} resize-y min-h-[140px]`}
               />
             </div>
-            {/* Honeypot: hidden from people, filled by naive bots, dropped by Formspree. */}
+            {/* Honeypot: hidden from people; a bot that fills every field trips it
+                and Formspree drops the submission. */}
             <input
               type="text"
               name="_gotcha"

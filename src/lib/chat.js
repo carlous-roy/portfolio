@@ -133,7 +133,7 @@ export function messageForError(code) {
     case 'not_configured':
       return `The assistant is not set up right now. Email Roy at ${CONTACT_EMAIL} and he will answer himself.`
     case 'rate_limited':
-      return `That's a lot of questions! Give it a minute, or reach Roy at ${CONTACT_EMAIL}`
+      return `That's a lot of questions. Give it a minute, or reach Roy at ${CONTACT_EMAIL}`
     case 'timeout':
       return `The assistant took too long to answer. Try again, or reach Roy at ${CONTACT_EMAIL}`
     default:

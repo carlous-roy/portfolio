@@ -167,8 +167,8 @@ export default function AIChatbot({ open, messages, setMessages, onClose }) {
         cache.set(key, reply)
         finish(reply)
       } catch (e) {
-        // Log the real error type and message. A bare catch here once hid a model
-        // that had been retired, because every failure looked identical.
+        // Log the code, status and message so a retired model, a timeout and a
+        // quota error can be told apart in the console.
         console.error(
           '[chatbot]',
           e.code || e.name,
