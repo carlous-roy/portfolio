@@ -130,11 +130,10 @@ describe('sendChat', () => {
 
   it('maps server codes to client error codes', async () => {
     const cases = [
-      [ok({ error: 'x', code: 'not_configured' }, 503), 'not_configured'],
       [ok({ error: 'x', code: 'rate_limited' }, 429), 'rate_limited'],
-      [ok({ error: 'x', code: 'upstream_quota' }, 429), 'rate_limited'],
-      [ok({ error: 'x', code: 'upstream_timeout' }, 504), 'timeout'],
+      [ok({ error: 'x' }, 504), 'timeout'],
       [ok({ error: 'x' }, 502), 'unavailable'],
+      [ok({ error: 'x' }, 403), 'unavailable'],
       [ok({}, 200), 'unavailable'],
     ]
     for (const [response, code] of cases) {
@@ -178,10 +177,12 @@ describe('sendChat', () => {
 })
 
 describe('messageForError', () => {
-  it('has a distinct sentence for the unconfigured state', () => {
-    expect(messageForError('not_configured')).toMatch(/not set up/)
+  it('names the email in every sentence and never says the assistant is unconfigured', () => {
+    for (const code of ['rate_limited', 'timeout', 'anything']) {
+      expect(messageForError(code)).toContain('roy4edu@gmail.com')
+      expect(messageForError(code)).not.toMatch(/not set up|not configured/)
+    }
     expect(messageForError('rate_limited')).toMatch(/lot of questions/)
     expect(messageForError('timeout')).toMatch(/too long/)
-    expect(messageForError('anything')).toMatch(/unavailable/)
   })
 })

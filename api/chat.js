@@ -10,9 +10,13 @@
 //
 // Failure handling: each request gets an upstream timeout, keys are tried in
 // order on quota and server errors, and every upstream failure is logged as
-// one JSON line without the key or the conversation.
+// one JSON line without the key or the conversation. When no key is set or
+// every attempt fails, the route answers from api/fallback.js, written from
+// the same facts, so the visitor gets an answer and the failure goes to the
+// logs rather than the dialog.
 
 import { buildSystemInstruction } from './knowledge.js'
+import { fallbackReply } from './fallback.js'
 import { validateChatBody } from './validate.js'
 import { createRateLimiter } from './ratelimit.js'
 
@@ -182,15 +186,23 @@ export function createHandler({
     if (!validated.ok) return res.status(400).json({ error: validated.error })
     const { messages } = validated
 
+    const latest = messages[messages.length - 1].text
+
+    // The local answer for this question, with the reason it was used in the
+    // log (never the question itself).
+    const answerLocally = (reason) => {
+      const { reply, topic } = fallbackReply(latest)
+      logEvent('warn', 'fallback', { reason, topic })
+      return res.status(200).json({ reply, source: 'fallback' })
+    }
+
     // Keys are read here, per request, never at module load.
     const keys = [env.GEMINI_API_KEY, env.GEMINI_API_KEY_2].filter(Boolean)
-    if (!keys.length) {
-      return res.status(503).json({ error: 'Assistant is not configured', code: 'not_configured' })
-    }
+    if (!keys.length) return answerLocally('not_configured')
 
     const payload = {
       system_instruction: {
-        parts: [{ text: buildSystemInstruction(messages[messages.length - 1].text) }],
+        parts: [{ text: buildSystemInstruction(latest) }],
       },
       contents: messages.map((m) => ({ role: m.role, parts: [{ text: m.text }] })),
       generationConfig: GENERATION_CONFIG,
@@ -221,9 +233,9 @@ export function createHandler({
               finishReason: completion?.candidates?.[0]?.finishReason || null,
               blockReason: completion?.promptFeedback?.blockReason || null,
             })
-            return res.status(502).json({ error: 'Empty completion' })
+            return answerLocally('empty_completion')
           }
-          return res.status(200).json({ reply: toPlainText(text) })
+          return res.status(200).json({ reply: toPlainText(text), source: 'model' })
         }
         let detail = ''
         try {
@@ -254,14 +266,8 @@ export function createHandler({
       }
     }
 
-    // Upstream detail stays in the logs; the client gets a status it can act on.
-    if (outcome === 'quota') {
-      return res.status(429).json({ error: 'The assistant is busy', code: 'upstream_quota' })
-    }
-    if (outcome === 'timeout') {
-      return res.status(504).json({ error: 'The assistant timed out', code: 'upstream_timeout' })
-    }
-    return res.status(502).json({ error: 'Assistant is unavailable', code: 'upstream_error' })
+    // Upstream detail is in the logs; the visitor gets an answer either way.
+    return answerLocally(outcome)
   }
 }
 

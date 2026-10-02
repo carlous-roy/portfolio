@@ -15,7 +15,8 @@ and light themes follow the OS preference, and a toggle pins a choice. Project c
 by role, and `?role=ml` style links open the page at that view.
 
 The assistant sits in a native `<dialog>`. It sends the conversation to `/api/chat`, which builds the
-prompt on the server and calls Gemini.
+prompt on the server and calls Gemini. When the model cannot be reached, the route answers from the
+same facts itself, so the dialog never shows a visitor an error for something on my side.
 
 ## Stack
 
@@ -35,6 +36,7 @@ prompt on the server and calls Gemini.
 api/
 ├── chat.js          # The route: origin check, rate limit, validation, Gemini call, failover
 ├── knowledge.js     # System prompt and context blocks (server side only)
+├── fallback.js      # Answers served from the same facts when the model is unreachable
 ├── validate.js      # Request schema and size limits
 └── ratelimit.js     # Per-instance sliding window
 src/
@@ -62,8 +64,9 @@ npm run dev               # http://localhost:5173, /api/chat included
 ```
 
 `npm run dev` serves the assistant route through a small Vite plugin, so the Vercel CLI is not
-needed. Without a key the route answers `503` and the dialog says the assistant is not set up.
-Restart the dev server after editing files under `api/`.
+needed. Without a key the route answers from `api/fallback.js`, so the dialog works locally as it
+does when the model is down; with a key in `.env` the answers come from Gemini. Restart the dev
+server after editing files under `api/`.
 
 Other scripts: `npm run lint`, `npm run format`, `npm test`, `npm run build`. `npm run preview`
 serves the build with the response headers from `vercel.json`, so the Content-Security-Policy can
@@ -84,8 +87,12 @@ never appear in the build.
 
 1. Import the repository at [vercel.com/new](https://vercel.com/new). Framework: Vite, build
    `npm run build`, output `dist`.
-2. Add `GEMINI_API_KEY` (and optionally `GEMINI_API_KEY_2`) under Settings → Environment Variables
-   for Production, then redeploy. Use a key that has never been in a client bundle.
+2. Create a key in Google AI Studio (aistudio.google.com → API keys → Create API key; the free tier
+   needs no billing) and add it as `GEMINI_API_KEY` under Settings → Environment Variables for
+   Production, then redeploy. Use a key that has never been in a client bundle, and restrict it to
+   the Gemini API in the Google Cloud console. A second key from a different Google Cloud project
+   can go in `GEMINI_API_KEY_2`; quotas are per project, so it carries the assistant through the
+   first one's limit. Until a key is set the dialog answers from `api/fallback.js`.
 3. Domains: `roycarlous.com` is the canonical host. In Settings → Domains make the apex the
    production domain and set `www.roycarlous.com` to redirect to it. That setting is the only
    www redirect; `vercel.json` carries none, so whichever host is marked production serves the
@@ -99,7 +106,7 @@ DNS at Namecheap: `A @ 76.76.21.21` and `CNAME www cname.vercel-dns.com`.
 browser ── POST /api/chat { messages: [{ role, text }] } ──► function ── x-goog-api-key ──► Gemini
    │                                                              │
    │   only the conversation; the prompt is not sent               │  prompt from api/knowledge.js
-   └──◄── { reply } or { error, code } ───────────────────────────┘  key from process.env
+   └──◄── { reply, source } or { error, code } ───────────────────┘  key from process.env
 ```
 
 What the function does, in order:
@@ -124,9 +131,13 @@ What the function does, in order:
   quotas are per project.
 - Logs each upstream failure as one JSON line (event, status, key index, elapsed time, a truncated
   response body) without the key or the conversation, so an outage is visible in the function logs.
-- Strips Markdown markers from the reply and returns `{ reply }`. Errors return a status the client
-  maps to a sentence: `503` with `code: "not_configured"` when no key is set, `429` when rate limited
-  or out of quota, `504` on timeout, `502` otherwise.
+- Strips Markdown markers from the reply and returns `{ reply, source: "model" }`.
+- When no key is set, every key is out of quota, the call fails or times out, or the model returns
+  nothing, answers `{ reply, source: "fallback" }` from `api/fallback.js`: a short answer written
+  from the same facts, chosen by the words in the question (the work history, each project, skills,
+  education, availability, contact, and a menu of topics when nothing matches). The reason goes to
+  the log as a `fallback` line. The only error statuses a visitor can get are for their own request:
+  `400` for a bad body, `403` for a foreign origin, `429` from the limiter, `405` for a non-POST.
 
 On the client, `src/lib/chat.js` builds the request from completed exchanges only (a failed turn is
 never replayed as something the model said), keeps a cache keyed on the whole conversation for the
@@ -134,8 +145,9 @@ life of the page, throttles to 15 sends per five minutes as a courtesy before th
 and aborts a request after 20 seconds.
 
 Tests in `api/*.test.js` and `src/lib/chat.test.js` cover the validator, the limiter, the context
-builder, the request builder and the handler against a fake upstream, including failover, timeouts
-and the log lines.
+builder, the fallback's topic choice for every question the dialog suggests, the request builder and
+the handler against a fake upstream, including failover, timeouts, the local answers and the log
+lines.
 
 ## Security notes
 

@@ -291,7 +291,7 @@ export default function AIChatbot({ open, messages, setMessages, onClose }) {
         </div>
 
         <form
-          className="px-5 pt-4 pb-3 shrink-0 border-t border-edge"
+          className="px-5 pt-4 pb-5 shrink-0 border-t border-edge"
           onSubmit={(e) => {
             e.preventDefault()
             send(input)
@@ -322,10 +322,6 @@ export default function AIChatbot({ open, messages, setMessages, onClose }) {
               <Send />
             </button>
           </div>
-          <p className="text-[12px] text-mu mt-2 mb-0 text-center">
-            Messages are sent to Google&rsquo;s Gemini API to generate answers. Please leave out
-            personal details.
-          </p>
         </form>
       </div>
     </dialog>

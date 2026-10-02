@@ -89,9 +89,10 @@ export class ChatError extends Error {
   }
 }
 
-// Posts the conversation and returns the reply text. Throws ChatError with a
-// code the UI maps to a sentence: not_configured, rate_limited, timeout,
-// unavailable.
+// Posts the conversation and returns the reply text. The route answers every
+// question it can parse, from the model or from its own knowledge base, so an
+// error here means the request itself failed. Throws ChatError with a code the
+// UI maps to a sentence: rate_limited, timeout, unavailable.
 export async function sendChat(messages, { fetchFn = fetch, timeoutMs = REQUEST_TIMEOUT_MS } = {}) {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
@@ -115,12 +116,8 @@ export async function sendChat(messages, { fetchFn = fetch, timeoutMs = REQUEST_
     data = null
   }
   if (!response.ok) {
-    const code = data?.code
-    if (code === 'not_configured') throw new ChatError('not_configured', response.status)
     if (response.status === 429) throw new ChatError('rate_limited', response.status)
-    if (response.status === 504 || code === 'upstream_timeout') {
-      throw new ChatError('timeout', response.status)
-    }
+    if (response.status === 504) throw new ChatError('timeout', response.status)
     throw new ChatError('unavailable', response.status)
   }
   const reply = typeof data?.reply === 'string' ? data.reply.trim() : ''
@@ -130,13 +127,11 @@ export async function sendChat(messages, { fetchFn = fetch, timeoutMs = REQUEST_
 
 export function messageForError(code) {
   switch (code) {
-    case 'not_configured':
-      return `The assistant is not set up right now. Email Roy at ${CONTACT_EMAIL} and he will answer himself.`
     case 'rate_limited':
-      return `That's a lot of questions. Give it a minute, or reach Roy at ${CONTACT_EMAIL}`
+      return `That's a lot of questions in a short time. Give it a minute, or email Roy at ${CONTACT_EMAIL}.`
     case 'timeout':
-      return `The assistant took too long to answer. Try again, or reach Roy at ${CONTACT_EMAIL}`
+      return `That took too long. Ask again, or email Roy at ${CONTACT_EMAIL}.`
     default:
-      return `The assistant is unavailable right now. Reach Roy at ${CONTACT_EMAIL}`
+      return `I can't answer right now. Email Roy at ${CONTACT_EMAIL} and he will reply himself.`
   }
 }

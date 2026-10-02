@@ -9,6 +9,7 @@ import {
   WINDOW_MS,
   UPSTREAM_TIMEOUT_MS,
 } from './chat.js'
+import { ANSWERS } from './fallback.js'
 
 const ORIGIN = 'https://roycarlous.com'
 
@@ -146,14 +147,19 @@ describe('handler: request gate', () => {
     expect(res.statusCode).toBe(200)
   })
 
-  it('answers 503 with a code when no key is configured', async () => {
+  it('answers from the knowledge base, and logs why, when no key is configured', async () => {
+    const log = silentLog()
     const fetch = vi.fn()
-    const h = createHandler({ fetch, env: {}, log: silentLog() })
+    const h = createHandler({ fetch, env: {}, log })
     const res = makeRes()
     await h(makeReq({ body: valid }), res)
-    expect(res.statusCode).toBe(503)
-    expect(res.payload).toEqual({ error: 'Assistant is not configured', code: 'not_configured' })
+    expect(res.statusCode).toBe(200)
+    expect(res.payload.source).toBe('fallback')
+    expect(res.payload.reply).toBe(ANSWERS.projects)
     expect(fetch).not.toHaveBeenCalled()
+    const line = JSON.parse(log.warn.mock.calls[0][0])
+    expect(line).toMatchObject({ event: 'fallback', reason: 'not_configured', topic: 'projects' })
+    expect(log.warn.mock.calls[0][0]).not.toContain('What projects')
   })
 })
 
@@ -204,7 +210,7 @@ describe('handler: upstream call', () => {
     }
     await h(makeReq({ body }), res)
     expect(res.statusCode).toBe(200)
-    expect(res.payload).toEqual({ reply: 'Roy built four projects.' })
+    expect(res.payload).toEqual({ reply: 'Roy built four projects.', source: 'model' })
 
     const [url, init] = fetch.mock.calls[0]
     expect(url).toContain('generativelanguage.googleapis.com')
@@ -266,27 +272,33 @@ describe('handler: upstream call', () => {
     const res = makeRes()
     await h(makeReq({ body: valid }), res)
     expect(fetch).toHaveBeenCalledTimes(1)
-    expect(res.statusCode).toBe(502)
-    expect(res.payload.code).toBe('upstream_error')
+    expect(res.statusCode).toBe(200)
+    expect(res.payload).toEqual({ reply: ANSWERS.projects, source: 'fallback' })
+    expect(JSON.parse(log.warn.mock.calls[0][0])).toMatchObject({
+      event: 'fallback',
+      reason: 'unavailable',
+    })
   })
 
-  it('answers 429 when every key is out of quota', async () => {
+  it('answers from the knowledge base when every key is out of quota', async () => {
+    const log = silentLog()
     const fetch = vi
       .fn()
       .mockResolvedValueOnce(upstreamResponse(429, 'quota'))
       .mockResolvedValueOnce(upstreamResponse(429, 'quota'))
-    const h = createHandler({
-      fetch,
-      env: { GEMINI_API_KEY: 'a', GEMINI_API_KEY_2: 'b' },
-      log: silentLog(),
-    })
+    const h = createHandler({ fetch, env: { GEMINI_API_KEY: 'a', GEMINI_API_KEY_2: 'b' }, log })
     const res = makeRes()
     await h(makeReq({ body: valid }), res)
-    expect(res.statusCode).toBe(429)
-    expect(res.payload.code).toBe('upstream_quota')
+    expect(fetch).toHaveBeenCalledTimes(2)
+    expect(res.statusCode).toBe(200)
+    expect(res.payload).toEqual({ reply: ANSWERS.projects, source: 'fallback' })
+    expect(JSON.parse(log.warn.mock.calls[0][0])).toMatchObject({
+      event: 'fallback',
+      reason: 'quota',
+    })
   })
 
-  it('aborts a stalled upstream call, tries the next key and answers 504 if all stall', async () => {
+  it('aborts a stalled upstream call, tries the next key and answers locally if all stall', async () => {
     const log = silentLog()
     let t = 0
     const timers = []
@@ -320,10 +332,14 @@ describe('handler: upstream call', () => {
     await h(makeReq({ body: valid }), res)
     expect(fetch).toHaveBeenCalledTimes(2)
     expect(timers[0].ms).toBe(UPSTREAM_TIMEOUT_MS)
-    expect(res.statusCode).toBe(504)
-    expect(res.payload.code).toBe('upstream_timeout')
+    expect(res.statusCode).toBe(200)
+    expect(res.payload).toEqual({ reply: ANSWERS.projects, source: 'fallback' })
     const events = log.error.mock.calls.map((c) => JSON.parse(c[0]).event)
     expect(events).toEqual(['upstream_timeout', 'upstream_timeout'])
+    expect(JSON.parse(log.warn.mock.calls[0][0])).toMatchObject({
+      event: 'fallback',
+      reason: 'timeout',
+    })
   })
 
   it('treats a network error as a reason to try the next key', async () => {
@@ -339,10 +355,10 @@ describe('handler: upstream call', () => {
     const res = makeRes()
     await h(makeReq({ body: valid }), res)
     expect(res.statusCode).toBe(200)
-    expect(res.payload.reply).toBe('recovered')
+    expect(res.payload).toEqual({ reply: 'recovered', source: 'model' })
   })
 
-  it('answers 502 and logs the finish reason when the completion is empty', async () => {
+  it('answers locally and logs the finish reason when the completion is empty', async () => {
     const log = silentLog()
     const fetch = vi.fn(async () =>
       upstreamResponse(200, { candidates: [{ content: { parts: [] }, finishReason: 'SAFETY' }] })
@@ -350,7 +366,8 @@ describe('handler: upstream call', () => {
     const h = createHandler({ fetch, env: { GEMINI_API_KEY: 'a' }, log })
     const res = makeRes()
     await h(makeReq({ body: valid }), res)
-    expect(res.statusCode).toBe(502)
+    expect(res.statusCode).toBe(200)
+    expect(res.payload).toEqual({ reply: ANSWERS.projects, source: 'fallback' })
     expect(JSON.parse(log.error.mock.calls[0][0])).toMatchObject({
       event: 'empty_completion',
       finishReason: 'SAFETY',
