@@ -65,10 +65,10 @@ describe('Content-Security-Policy', () => {
     expect(directive.trim()).toBe("script-src 'self'")
   })
 
-  it('redirects www to the apex with a permanent code', () => {
-    const r = vercel.redirects[0]
-    expect(r.has[0].value).toBe('www.roycarlous.com')
-    expect(r.destination).toBe('https://roycarlous.com/:path*')
-    expect(r.permanent).toBe(true)
+  it('leaves the www redirect to the Vercel domain setting', () => {
+    // A redirect here would depend on the dashboard agreeing with it; with
+    // www as the production domain the two bounce every asset request between
+    // the hosts and 'self' in the policy blocks what gets through.
+    expect(vercel.redirects).toBeUndefined()
   })
 })
