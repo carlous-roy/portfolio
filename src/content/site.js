@@ -3,7 +3,7 @@
 
 export const NAME = 'Roy Carlous Christudass'
 export const SHORT_NAME = 'Roy'
-export const HEADLINE = 'AI Software Engineer'
+export const HEADLINE = 'Software Engineer'
 export const TAGLINE = 'Machine learning, data and backend systems, built end to end'
 export const SITE_URL = 'https://roycarlous.com'
 
@@ -53,6 +53,6 @@ export const PHOTOS = [
 
 export const ABOUT = [
   "I'm a software engineer working on AI and data systems. Most of what I build ends up the same shape: data coming in, a model or some logic over it, an API in the middle, and a front end someone actually uses, and I like working across all of that rather than owning one layer.",
-  "Before my master's I spent nearly three years at HCLTech, contracted to Teradyne, writing C++ and C#/.NET drivers for semiconductor test equipment. The software controlled physical hardware, so bugs were expensive and I got good at tracing them. I also ended up owning customer escalations and building the dashboards that tracked them, which is how I got into data work in the first place.",
-  "I'm currently actively looking for full-time roles where I can bring real engineering rigor to high-impact problems.",
+  "Before my master's I spent January 2022 to August 2024 at HCLTech, contracted to Teradyne, writing C++ and C#/.NET drivers for semiconductor test equipment. The software controlled physical hardware, so bugs were expensive and I got good at tracing them. I also ended up owning customer escalations and building the dashboards that tracked them, which is how I got into data work in the first place.",
+  "I finished my M.S. in Computer Science at Wright State University in August 2026 and I'm looking for a full-time software engineering role: backend, machine learning or data.",
 ]
