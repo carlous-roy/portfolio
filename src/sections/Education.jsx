@@ -23,6 +23,18 @@ export default function Education() {
                 </div>
                 <Body className="text-su !leading-normal">{e.deg}</Body>
                 <p className="text-sm text-mu mt-1">{e.loc}</p>
+                {e.credential && (
+                  <p className="text-sm mt-2">
+                    <a
+                      href={e.credential.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-accent-text font-medium"
+                    >
+                      {e.credential.label} ↗
+                    </a>
+                  </p>
+                )}
                 {e.courses && (
                   <p className="text-sm text-mu mt-4">
                     <span className="font-semibold text-su">Relevant coursework:</span> {e.courses}
