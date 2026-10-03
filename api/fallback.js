@@ -9,9 +9,9 @@
 // topic listed first, which is why the specific topics (one project, a
 // boundary) come before the general ones (projects, about).
 
-import { CONTACT_EMAIL } from './knowledge.js'
+import { CONTACT_EMAIL, CONTACT_PHONE } from './knowledge.js'
 
-const CONTACT_LINE = `Email ${CONTACT_EMAIL}, or find him on LinkedIn at linkedin.com/in/roy-carlous-c and on GitHub at github.com/carlous-roy.`
+const CONTACT_LINE = `Call or text ${CONTACT_PHONE}, email ${CONTACT_EMAIL}, or find him on LinkedIn at linkedin.com/in/roy-carlous-c and on GitHub at github.com/carlous-roy.`
 
 export const ANSWERS = {
   personal: `That's one for Roy himself: email him at ${CONTACT_EMAIL}. I can tell you about his work, his projects and his skills.`,
@@ -22,7 +22,7 @@ export const ANSWERS = {
   greeting:
     "Hi. Ask me about Roy's work at HCLTech, the four projects he has built, his skills and education, or how to reach him.",
 
-  about: `Roy Carlous Christudass is a software engineer. He spent January 2022 to August 2024 at HCLTech, contracted to Teradyne, writing and debugging the C++ and C#/.NET drivers that run inside semiconductor test equipment, then finished a master's in computer science at Wright State University in August 2026 and built four public projects around machine learning, retrieval and distributed systems. He is based in Dayton, Ohio, open to relocation, and looking for a full-time backend, machine learning or data role. The shape he keeps coming back to: data coming in, a model or some logic over it, an API in the middle, and a front end someone uses.`,
+  about: `Roy Carlous Christudass is a software engineer. He spent January 2022 to August 2024 at HCLTech, contracted to Teradyne, writing and debugging the C++ and C#/.NET drivers that run inside semiconductor test equipment, then finished a master's in computer science at Wright State University in August 2026 and built four public projects around machine learning, retrieval and distributed systems. He is in the US, open to relocation anywhere in the country, and looking for a full-time backend, machine learning or data role. The shape he keeps coming back to: data coming in, a model or some logic over it, an API in the middle, and a front end someone uses.`,
 
   work: `Roy spent January 2022 to August 2024 at HCLTech, contracted to Teradyne in Chennai, on the C++ and C#/.NET drivers for analog instruments in Teradyne's IG-XL platform, where a driver defect can stop a customer's production line. He started as a Graduate Engineer Trainee reproducing customer-reported defects on the DC30 and UVI80 instruments, resolved about a hundred defects end to end as a Software Engineer from August 2022, and as a Senior Software Engineer from January 2024 was the single escalation point for production-stopping issues during the IG-XL .NET migration, with zero production stoppers on the releases he managed. Along the way he built the team's Power BI defect dashboards on a SQL Server mirror of Jira and wrote Python tooling around cdb.exe and dotTrace to catch memory and runtime regressions between nightly builds.`,
 
@@ -44,9 +44,9 @@ export const ANSWERS = {
 
   hobbies: `Outside work: photography on a Sony A7 V (the photos on this site are his), cricket, football, Formula 1, UFC, cinema (Nolan, Villeneuve, Tamil cinema) and music (A. R. Rahman, The Weeknd, Linkin Park, Hans Zimmer).`,
 
-  availability: `Roy finished his master's in August 2026 and is available now for full-time roles in backend, machine learning or data engineering. He is based in Dayton, Ohio and open to relocation. Email ${CONTACT_EMAIL} to talk about a role; timing, compensation and work authorization are best discussed with him directly.`,
+  availability: `Roy finished his master's in August 2026 and is available now for full-time roles in backend, machine learning or data engineering. He is in the US and open to relocation anywhere in the country. Email ${CONTACT_EMAIL} or call ${CONTACT_PHONE} to talk about a role; timing, compensation and work authorization are best discussed with him directly.`,
 
-  contact: `${CONTACT_LINE} He is based in Dayton, Ohio and open to relocation.`,
+  contact: `${CONTACT_LINE} He is in the US and open to relocation anywhere in the country.`,
 
   default: `I can tell you about Roy's work at HCLTech, his four projects (DiffLens, TaskForge, GestureControl and CodeAtlas), his skills and education, and how to reach him. For anything else, ${CONTACT_EMAIL} reaches him directly.`,
 }
@@ -88,7 +88,7 @@ const RULES = [
   ],
   [
     'contact',
-    /\b(contact|e-?mail|reach|connect|linkedin|github|resume|cv|phone|call him|message|located|based|location|where (is|does) he (live|work|stay)|dayton|ohio)\b/g,
+    /\b(contact|e-?mail|reach|connect|linkedin|github|resume|cv|phone|call him|message|located|based|location|where (is|does) he (live|work|stay)|which (city|state))\b/g,
   ],
   [
     'skills',

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { ANSWERS, fallbackReply, pickTopic } from './fallback.js'
-import { CONTACT_EMAIL } from './knowledge.js'
+import { CONTACT_EMAIL, CONTACT_PHONE } from './knowledge.js'
 
 // The questions the dialog suggests, and the follow-ups it offers, each with
 // the topic a visitor would expect. Keep this list in step with
@@ -78,14 +78,18 @@ describe('fallbackReply', () => {
     expect(reply).toBe(ANSWERS.projects)
   })
 
-  it('writes every answer as plain text with no phone number and no Markdown', () => {
+  it('writes every answer as plain text with no Markdown, and gives the phone number only when contact is the topic', () => {
     for (const [topic, text] of Object.entries(ANSWERS)) {
       expect(text, topic).not.toMatch(/\*\*|`|^#|__|^\s*[-*] /m)
-      expect(text, topic).not.toMatch(/\d{3}[ .-]\d{3}[ .-]\d{4}/)
+      if (!['contact', 'availability'].includes(topic)) {
+        expect(text, topic).not.toContain(CONTACT_PHONE)
+      }
       expect(text, topic).not.toMatch(/—/)
       expect(text.length, topic).toBeLessThan(1200)
     }
     expect(ANSWERS.default).toContain(CONTACT_EMAIL)
     expect(ANSWERS.contact).toContain(CONTACT_EMAIL)
+    expect(ANSWERS.contact).toContain(CONTACT_PHONE)
+    for (const text of Object.values(ANSWERS)) expect(text).not.toMatch(/Dayton|based in/)
   })
 })

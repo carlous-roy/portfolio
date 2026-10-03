@@ -1,6 +1,6 @@
 import Reveal from '../components/Reveal'
 import { Body, H2, Label } from '../components/Primitives'
-import { LinkedIn, Mail } from '../icons'
+import { Github, LinkedIn, Mail, Phone } from '../icons'
 import { CONTACT } from '../content/site'
 
 const FIELD =
@@ -20,7 +20,20 @@ export default function Contact() {
           <Body className="text-su mb-3">
             Got a question, opportunity, or just want to say hello? Drop a message.
           </Body>
-          <p className="text-sm text-mu mb-12">{CONTACT.location} &middot; open to relocation</p>
+          <p className="flex items-center justify-center flex-wrap gap-x-6 gap-y-2 text-[15px] text-tx mb-12">
+            <a
+              href={`tel:${CONTACT.phone}`}
+              className="inline-flex items-center gap-2 text-tx no-underline hover:text-accent-text"
+            >
+              <Phone size={16} /> {CONTACT.phoneDisplay}
+            </a>
+            <a
+              href={`mailto:${CONTACT.email}`}
+              className="inline-flex items-center gap-2 text-tx no-underline hover:text-accent-text"
+            >
+              <Mail size={16} /> {CONTACT.email}
+            </a>
+          </p>
         </Reveal>
         <Reveal delay={0.15}>
           {/* Plain HTML post to Formspree; the site has no backend for mail. */}
@@ -110,6 +123,16 @@ export default function Contact() {
                 className="pill-link flex items-center gap-2.5 px-5 py-3 rounded-full border border-edge text-su text-sm font-medium no-underline transition-transform hover:-translate-y-0.5 hover:text-accent-text"
               >
                 <LinkedIn size={18} /> LinkedIn
+              </a>
+            </li>
+            <li>
+              <a
+                href={CONTACT.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pill-link flex items-center gap-2.5 px-5 py-3 rounded-full border border-edge text-su text-sm font-medium no-underline transition-transform hover:-translate-y-0.5 hover:text-accent-text"
+              >
+                <Github size={18} /> GitHub
               </a>
             </li>
             <li>
